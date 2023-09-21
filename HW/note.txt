@@ -1,0 +1,29 @@
+    if((abs(start1.x - end1.x) + abs(start1.y - end1.y) + abs(start2.x - end2.x) + abs(start2.y - end2.y))<(abs(start1.x - end2.x) + abs(start1.y - end2.y) + abs(start2.x - end1.x) + abs(start2.y - end1.y))){
+        if((abs(start1.x - end1.x) + abs(start1.y - end1.y)) < (abs(start2.x - end2.x) + abs(start2.y - end2.y))){
+            findPath(maze, n, start1, end1, start2, end2);
+        }
+        else{
+            findPath(maze, n, start2, end2, start1, end1);
+        }
+    }
+    else{
+        if((abs(start1.x - end2.x) + abs(start1.y - end2.y)) < (abs(start2.x - end1.x) + abs(start2.y - end1.y))){
+            findPath(maze, n, start1, end2, start2, end1);
+        }
+        else{
+            findPath(maze, n, start2, end1, start1, end2);
+        }
+
+    }
+
+
+                if(flag){
+                flag=0;
+                for(int i = first-1 ; i>=0 ; i--){
+                    if(isValid(start2.x+dx[ans[i]], start2.y+dy[ans[i]], n, maze)){
+                        start2.x+=dx[ans[i]];
+                        start2.y+=dy[ans[i]];
+                    }
+                }
+                findPath(maze, n, start2, end2, start, end);//strat 1 end 1 no use
+            }
