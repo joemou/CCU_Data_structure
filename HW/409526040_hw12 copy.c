@@ -1,83 +1,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#define MAX_SIZE 10000
+#define MAX_SIZE 1000
 
-//for int queue
-typedef struct {
-    int arr[MAX_SIZE];
-    int front;
-    int rear;
-} IntQueue;
-
-void initializeIntQueue(IntQueue* queue) {
-    queue->front = -1;
-    queue->rear = -1;
-}
-
-int isIntQueueEmpty(IntQueue* queue) {
-    return (queue->front == -1 && queue->rear == -1);
-}
-
-int isIntQueueFull(IntQueue* queue) {
-    return (queue->rear + 1) % MAX_SIZE == queue->front;
-}
-
-void enqueueInt(IntQueue* queue, int value) {
-    if (isIntQueueFull(queue)) {
-        printf("Error: Queue is full\n");
-        return;
-    } else if (isIntQueueEmpty(queue)) {
-        queue->front = queue->rear = 0;
-    } else {
-        queue->rear = (queue->rear + 1) % MAX_SIZE;
-    }
-
-    queue->arr[queue->rear] = value;
-}
-
-int dequeueInt(IntQueue* queue) {
-    int dequeuedValue;
-
-    if (isIntQueueEmpty(queue)) {
-        printf("Error: Queue is empty\n");
-        return -1;
-    } else if (queue->front == queue->rear) {
-        dequeuedValue = queue->arr[queue->front];
-        queue->front = queue->rear = -1;
-    } else {
-        dequeuedValue = queue->arr[queue->front];
-        queue->front = (queue->front + 1) % MAX_SIZE;
-    }
-
-    return dequeuedValue;
-}
-
-int frontInt(IntQueue* queue) {
-    if (isIntQueueEmpty(queue)) {
-        printf("Error: Queue is empty\n");
-        return -1;
-    }
-
-    return queue->arr[queue->front];
-}
-
-int sizeOfIntQueue(IntQueue* queue) {
-    if (isIntQueueEmpty(queue)) {
-        return 0;
-    } else {
-        return (queue->rear - queue->front + MAX_SIZE) % MAX_SIZE + 1;
-    }
-}
+//tran ans
+int ans[100000]={-1};
+int first = 0;
+int ans2[100000]={-1};
+int first2 = 0;
+int flag = 1;
 
 
-//for node queue
 typedef struct {
     int x;
     int y;
     int dir;
 } Node;
 
+//for queue
 typedef struct QueueNode{
     Node data;
     struct QueueNode* next;
@@ -167,17 +107,15 @@ int isValid(int x, int y, int n, int** maze) {
     return (x >= 0 && y >= 0 && x < n && y < n && maze[x][y] == 0);
 }
 
-void findPath(int** maze, int n, Node start, Node end, Node start2, Node end2, int flag, IntQueue *ans) {
+void findPath(int** maze, int n, Node start, Node end, Node start2, Node end2) {
     
-    Stack s;
-    initialize(&s);
     
     if(!isValid(start.x, start.y, n, maze)&&!isValid(!start2.x, start2.y, n, maze)&&!isValid(!end.x, !end.y, n, maze)&&!isValid(!end2.x, !end2.y, n, maze)){
         return;
     }
     
     if(start.x==end.x&&start.y==end.y&&flag){
-        return findPath(maze, n, start2, end2, start, end, 0,  ans);
+        return findPath(maze, n, start2, end2, start, end);
     }
     
     
@@ -204,32 +142,43 @@ void findPath(int** maze, int n, Node start, Node end, Node start2, Node end2, i
         if (curr.x == end.x && curr.y == end.y) {
             // Found the end point, reconstruct the path
             while (curr.x != start.x || curr.y != start.y) {
-                push(&s, curr.dir);
+                if(flag){
+                    ans[first++] = curr.dir;//tran ans
+                }
+                else{
+                    ans2[first2++] = curr.dir;//tran ans
+                }
                 curr = visited[curr.x][curr.y];
             }
 
-            while(!isEmptystack(&s)){
-                enqueueInt(ans, pop(&s));
-            }
-
             if(start2.x==end2.x&&start2.y==end2.y){
+                for(int i = first-1 ; i>=0 ; i--){
+                    printf("%d",ans[i]);
+                }
                 return;
             }
 
-            
-
             if(flag){
-
-                IntQueue temp = *ans;
-                while(!isIntQueueEmpty(&temp)){
-                    int i = dequeueInt(&temp);
-                    if(isValid(start2.x+dx[i], start2.y+dy[i], n, maze)){
-                        start2.x+=dx[i];
-                        start2.y+=dy[i];
+                flag=0;
+                for(int i = first-1 ; i>=0 ; i--){
+                    if(isValid(start2.x+dx[ans[i]], start2.y+dy[ans[i]], n, maze)){
+                        start2.x+=dx[ans[i]];
+                        start2.y+=dy[ans[i]];
                     }
                 }
-                return findPath(maze, n, start2, end2, start, end, 0, ans);
+                return findPath(maze, n, start2, end2, start, end);//strat 1 end 1 no use
             }
+
+            for(int i = first-1 ; i>=0 ; i--){
+                printf("%d",ans[i]);
+            }
+            for(int i = first2-1 ; i>=0 ; i--){
+                printf("%d",ans2[i]);
+            }
+            
+            printf("\n***\n");
+
+            return;
         }
 
         for (int i = 0; i < 4; i++) {
@@ -242,8 +191,6 @@ void findPath(int** maze, int n, Node start, Node end, Node start2, Node end2, i
             }
         }
     }
-
-    return;
 }
 
 int main() {
@@ -269,31 +216,22 @@ int main() {
 
     //calc distance
 
-    IntQueue q[4];
+    Stack s1,s2,s3,s4;
 
-    initializeIntQueue(&q[0]);
-    initializeIntQueue(&q[1]);
-    initializeIntQueue(&q[2]);
-    initializeIntQueue(&q[3]);
-
-    findPath(maze, n, start1, end1, start2, end2, 1, &q[0]);
-    findPath(maze, n, start2, end2, start1, end1, 1, &q[1]);
-    findPath(maze, n, start1, end2, start2, end1, 1, &q[2]);
-    findPath(maze, n, start2, end1, start1, end2, 1, &q[3]);
+    findPath(maze, n, start1, end1, start2, end2);
+    first = 0;
+    first2 = 0;
+    flag = 1;
+    findPath(maze, n, start2, end2, start1, end1);
+    first = 0;
+    first2 = 0;
+    flag = 1;
+    findPath(maze, n, start1, end2, start2, end1);
+    first = 0;
+    first2 = 0;
+    flag = 1;
+    findPath(maze, n, start2, end1, start1, end2);
     
-    int min = 999999;//no consider q empty
-    int index = 0;
-    for(int i = 1; i<4 ; i++){
-        if(min > sizeOfIntQueue(&q[i])&&!isIntQueueEmpty(&q[i])){
-            min = sizeOfIntQueue(&q[i]);
-            index = i;
-        }
-    }
-
-    while(!isIntQueueEmpty(&q[index])){
-        printf("%d",dequeueInt(&q[index]));
-    }
-
     for (int i = 0; i < n; i++) {
         free(maze[i]);
     }
