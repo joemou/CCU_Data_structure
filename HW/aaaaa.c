@@ -169,17 +169,22 @@ int isValid(int x, int y, int n, int** maze) {
 
 void findPath(int** maze, int n, Node start, Node end, Node start2, Node end2, int flag, IntQueue *ans) {
     
-    Stack s;
-    initialize(&s);
-    
-    if(!isValid(start.x, start.y, n, maze)&&!isValid(!start2.x, start2.y, n, maze)&&!isValid(!end.x, !end.y, n, maze)&&!isValid(!end2.x, !end2.y, n, maze)){
+    if(!isValid(start.x, start.y, n, maze)||!isValid(start2.x, start2.y, n, maze)||!isValid(end.x, end.y, n, maze)||!isValid(end2.x, end2.y, n, maze)){
         return;
     }
-    
+
+    Stack s;
+    initialize(&s);
+
     if(start.x==end.x&&start.y==end.y&&flag){
         return findPath(maze, n, start2, end2, start, end, 0,  ans);
     }
+
     
+    if(start.x==end2.x&&start.y==end2.y&&flag){
+        return findPath(maze, n, start2, end, start, end2, 0,  ans);
+    }
+
     
     int dx[] = {0, 1, 0, -1};
     int dy[] = {1, 0, -1, 0};
@@ -230,6 +235,7 @@ void findPath(int** maze, int n, Node start, Node end, Node start2, Node end2, i
                 }
                 return findPath(maze, n, start2, end2, start, end, 0, ans);
             }
+            return;
         }
 
         for (int i = 0; i < 4; i++) {
@@ -242,7 +248,10 @@ void findPath(int** maze, int n, Node start, Node end, Node start2, Node end2, i
             }
         }
     }
-
+    //no path clean ans
+    while(!isIntQueueEmpty(ans)){
+        dequeueInt(ans);
+    }
     return;
 }
 
@@ -275,13 +284,30 @@ int main() {
     initializeIntQueue(&q[1]);
     initializeIntQueue(&q[2]);
     initializeIntQueue(&q[3]);
-
-    findPath(maze, n, start1, end1, start2, end2, 1, &q[0]);
-    findPath(maze, n, start2, end2, start1, end1, 1, &q[1]);
-    findPath(maze, n, start1, end2, start2, end1, 1, &q[2]);
-    findPath(maze, n, start2, end1, start1, end2, 1, &q[3]);
     
-    int min = 999999;//no consider q empty
+    if(((start1.x==end1.x&&start1.y==end1.y)&&(start2.x==end2.x&&start2.y==end2.y))||((start1.x==end2.x&&start1.y==end2.y)&&(start2.x==end1.x&&start2.y==end1.y))){
+
+    }
+    else{
+        if((start1.x==end1.x&&start1.y==end1.y)||(start2.x==end2.x&&start2.y==end2.y)){
+            findPath(maze, n, start1, end1, start2, end2, 1, &q[0]);
+            findPath(maze, n, start2, end2, start1, end1, 1, &q[1]);
+        }
+        else if((start1.x==end2.x&&start1.y==end2.y)||(start2.x==end1.x&&start2.y==end1.y)){
+            findPath(maze, n, start1, end2, start2, end1, 1, &q[2]);
+        }
+        else if((start2.x==end1.x&&start2.y==end1.y)||(start1.x==end2.x&&start1.y==end2.y)){
+            findPath(maze, n, start2, end1, start1, end2, 1, &q[3]);
+        }
+        else{
+            findPath(maze, n, start1, end1, start2, end2, 1, &q[0]);
+            findPath(maze, n, start2, end2, start1, end1, 1, &q[1]);
+            findPath(maze, n, start1, end2, start2, end1, 1, &q[2]);
+            findPath(maze, n, start2, end1, start1, end2, 1, &q[3]);
+        }
+
+    }
+    int min = 999999;
     int index = 0;
     for(int i = 1; i<4 ; i++){
         if(min > sizeOfIntQueue(&q[i])&&!isIntQueueEmpty(&q[i])){

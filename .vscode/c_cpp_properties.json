@@ -1,19 +1,23 @@
 {
     "configurations": [
-        {
-            "name": "Mac",
-            "includePath": [
-                "${workspaceFolder}/**"
-            ],
-            "defines": [],
-            "macFrameworkPath": [
-                "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks"
-            ],
-            "compilerPath": "/usr/bin/clang",
-            "cStandard": "c17",
-            "cppStandard": "c++17",
-            "intelliSenseMode": "macos-clang-arm64"
-        }
+      {
+        "name": "MinGW",
+        "intelliSenseMode": "clang-x64",
+        "compilerPath": "C:/LLVM/bin/gcc.exe",
+        "includePath": [
+          "${workspaceFolder}"
+        ],
+        "defines": [],
+        "browse": {
+          "path": [
+            "${workspaceFolder}"
+          ],
+          "limitSymbolsToIncludedHeaders": true,
+          "databaseFilename": ""
+        },
+        "cStandard": "c11",
+        "cppStandard": "c++17"
+      }
     ],
     "version": 4
-}
+  }
