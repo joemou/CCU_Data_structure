@@ -1,53 +1,79 @@
 #include <stdio.h>
 
-//func for vector
-typedef struct {
-    int* data;
-    size_t size;
-} IntVector;
+#define MAX_SIZE 100
 
 typedef struct {
-    IntVector** data;
-    size_t size;
-} VectorOfVectors;
+    int arr[MAX_SIZE];
+    int front;
+    int rear;
+} IntQueue;
 
-void initIntVector(IntVector* vec, size_t capacity) {
-    vec->data = (int*)malloc(capacity * sizeof(int));
-    vec->size = 0;
+void initializeIntQueue(IntQueue* queue) {
+    queue->front = -1;
+    queue->rear = -1;
 }
 
-void pushBackInt(IntVector* vec, int value) {
-    vec->data[vec->size++] = value;
+int isIntQueueEmpty(IntQueue* queue) {
+    return (queue->front == -1 && queue->rear == -1);
 }
 
-void initVectorOfVectors(VectorOfVectors* vec, size_t capacity) {
-    vec->data = (IntVector**)malloc(capacity * sizeof(IntVector*));
-    vec->size = 0;
+int isIntQueueFull(IntQueue* queue) {
+    return (queue->rear + 1) % MAX_SIZE == queue->front;
 }
 
-void pushBackVector(VectorOfVectors* vec, IntVector* value) {
-    vec->data[vec->size++] = value;
+void enqueueInt(IntQueue* queue, int value) {
+    if (isIntQueueFull(queue)) {
+        printf("Error: Queue is full\n");
+        return;
+    } else if (isIntQueueEmpty(queue)) {
+        queue->front = queue->rear = 0;
+    } else {
+        queue->rear = (queue->rear + 1) % MAX_SIZE;
+    }
+
+    queue->arr[queue->rear] = value;
 }
 
-void freeIntVector(IntVector* vec) {
-    free(vec->data);
-    vec->size = 0;
+int dequeueInt(IntQueue* queue) {
+    int dequeuedValue;
+
+    if (isIntQueueEmpty(queue)) {
+        printf("Error: Queue is empty\n");
+        return -1;
+    } else if (queue->front == queue->rear) {
+        dequeuedValue = queue->arr[queue->front];
+        queue->front = queue->rear = -1;
+    } else {
+        dequeuedValue = queue->arr[queue->front];
+        queue->front = (queue->front + 1) % MAX_SIZE;
+    }
+
+    return dequeuedValue;
 }
 
-void freeVectorOfVectors(VectorOfVectors* vec) {
-    free(vec->data);
-    vec->size = 0;
+int frontInt(IntQueue* queue) {
+    if (isIntQueueEmpty(queue)) {
+        printf("Error: Queue is empty\n");
+        return -1;
+    }
+
+    return queue->arr[queue->front];
 }
 
+void initialize_route(){
 
-//func for update step
-void updateRound(int oldPath[], int newPath[], int numNodes) {  
-    int route[numNodes];
-    int update[numNodes];
-    int flag = 0;
+   //initial update path
+    route[0] = oldPath[0];
+
+    for (int i = 0; i < numNodes - 1; i++){
+        route[i + 1] = oldPath[route[i]];
+    }
 
 
-    //initial update
+}
+
+void initialize_ans(int ***ans){
+
     for (int i = 0; i < numNodes;i++){
         if(oldPath[i]!=-1){
             update[i] = oldPath[i];
@@ -57,15 +83,22 @@ void updateRound(int oldPath[], int newPath[], int numNodes) {
         }
     }
 
+}
+
+//func for update step
+void updateRound(int oldPath[], int newPath[], int numNodes, IntQueue* ans[]) {  
+    int route[numNodes][num];
+    int update[numNodes];
+    int flag = 0;
+
+
+
+   
+
     
 
 
-    //initial update path
-    route[0] = oldPath[0];
-
-    for (int i = 0; i < numNodes - 1; i++){
-        route[i + 1] = oldPath[route[i]];
-    }
+ 
 
     while (flag == 0)
     {
@@ -81,8 +114,14 @@ int main() {
     int oldPath[] = {7, 2, 9, 10, -1, -1, -1, 8, 1, 3, 11, -1};
     int newPath[] = {4, 6, 1, 2, 5, 3, 11, -1, -1, -1, -1, -1};
     int numNodes = 12;
-    
-    updateRound(oldPath, newPath, numNodes);
+
+    IntQueue ans[numNodes];
+
+    for (int i = 0; i < numNodes;i++){
+        initializeIntQueue(&ans[i]);
+    }
+
+    updateRound(oldPath, newPath, numNodes, &ans[]);
     
     return 0;
 }
