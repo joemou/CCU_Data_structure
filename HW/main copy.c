@@ -162,34 +162,6 @@ int peekFirstElement(Node* head) {
     return -1; // Return -1 if the list is empty or vector is empty
 }
 
-// Function to dequeue an element from the dynamic vector
-int Vector_dequeueElement(Vector* v) {
-    if (v->size > 0) {
-        int frontElement = v->arr[0];
-
-        // Shift elements to the left to fill the gap
-        for (int i = 0; i < v->size - 1; i++) {
-            v->arr[i] = v->arr[i+1];
-        }
-
-        v->size--;
-
-        // Adjust capacity if necessary (optional)
-        if (v->size <= v->capacity / 4 && v->capacity > 2) {
-            v->capacity /= 2;
-            v->arr = (int*)realloc(v->arr, sizeof(int) * v->capacity);
-        }
-
-        return frontElement;
-    } else {
-        // Handle case when vector is empty
-        // For example, you might choose to return a special value or throw an error.
-        // Here, I'm returning -1 to indicate an empty vector.
-        return -1;
-    }
-}
-
-
 // Function to print the dynamic vector of a node
 void printVector(Vector* vec) {
     for (int i = 0; i < vec->size; i++) {
@@ -267,128 +239,19 @@ void updateRound(int oldPath[], int newPath[], int numNodes) {
         }
     }
 
-    int flag_with_isolated_node = 0;
-    int ans_index = 0;
-    // Initialize the ans queue
-    IntQueue ans[numNodes];
+    //Initialize the ans queue
+    Intqueue ans[numNodes];
     for (int i = 0; i < numNodes;i++){
         initializeIntQueue(&ans[i]);
     }
-    // If exisits isolated node input the first Ans
-    for (int i = 0; i < numNodes;i++){
-        if(oldPath[i]==-1&&newPath[i]!=-1){
-            flag_with_isolated_node = 1;
-            break;
-        }
-    }
-    if(flag_with_isolated_node){
-        for (int i = 0; i < numNodes;i++){
-            if(oldPath[i]==-1&&newPath[i]!=-1){
-                enqueueInt(&ans[ans_index],newPath[i]);
-            }
-            else{
-                enqueueInt(&ans[ans_index],oldPath[i]);
-            }
-        }
-        ans_index++;
-    }
+    // Input the first Ans
+    ans
 
-    int ans_found = 0;
-
-    //while(!ans_found){
-
-        //Prune the route
-
-        //Prune calc distance
-        //Start point prob
-        int max_distance=-1;
-        int max_distance_index_lowerbound=-1;
-        int max_distance_index_upperbound=-1;
-        for(int i=0;i<numNodes;i++){
-            int lowerbound=i;
-            int upperbound=newPath[i];
-            int lowerbound_index=-1;
-            int upperbound_index=-1;
-            
-            //Find lowerbound index in route
-            int bound_index_count=1;
-            temp=head_route;
-            if(lowerbound==0){
-                lowerbound_index=0;
-            }
-            else{
-                while (temp!=NULL)
-                {
-                    if(findElement(temp->vec,lowerbound)!=-1){
-                        lowerbound_index=bound_index_count;
-                    }
-                    bound_index_count++;
-                    temp=temp->next;
-                }
-            }
-
-            //Find upperbound index in route
-            bound_index_count=1;
-            temp=head_route;
-            while (temp!=NULL)
-            {   
-                //If newPath point to NULL
-                if(upperbound==-1){
-                    upperbound_index=lowerbound_index;
-                    break;
-                }
-                else{
-                    if(findElement(temp->vec,upperbound)!=-1){
-                        upperbound_index=bound_index_count;
-                        break;
-                    }
-                }
-
-                bound_index_count++;
-                temp=temp->next;
-            }
-
-            //Calc max distance or not
-            if((upperbound_index-lowerbound_index)>max_distance){
-                max_distance=upperbound_index-lowerbound_index;
-                max_distance_index_lowerbound=lowerbound_index;
-                max_distance_index_upperbound=upperbound_index;
-            }
-
-        }
-        //Prune move mode
-        //Not moving start point
-        if(max_distance_index_lowerbound==0){
-            temp=head_route->next;
-            int move_count=0;
-
-            while(move_count<max_distance_index_upperbound){
-                
-                
-
-                move_count++;
-                temp=temp->next;
-            }
-        }
         
-
-
-
-        printf("==%d %d %d==\n",max_distance,max_distance_index_lowerbound,max_distance_index_upperbound);
-
+        // Prune the route
         // Shortcut the route
 
-
-    //}
-
-        
-    for(int i=0;i<numNodes-1;i++){
-        printf("%d ", dequeueInt(&ans[0]));
-    }
-    
-    printf("\n");
-
-    printList(head_route);
+        printList(head_route);
 
 
 }
@@ -400,5 +263,6 @@ int main() {
 
 
     updateRound(oldPath, newPath, numNodes);
+    
     return 0;
 }

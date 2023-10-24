@@ -62,7 +62,6 @@ int frontInt(IntQueue* queue) {
 int main() {
     IntQueue myIntQueue;
     initializeIntQueue(&myIntQueue);
-
     enqueueInt(&myIntQueue, 10);
     enqueueInt(&myIntQueue, 20);
     enqueueInt(&myIntQueue, 30);
