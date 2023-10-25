@@ -487,7 +487,10 @@ void updateRound(int oldPath[], int newPath[], int numNodes) {
         }
 
 
-
+        
+        printList(last_head_route);
+        printf("\n");
+        printList(head_route);
         
         
 
@@ -537,7 +540,10 @@ void updateRound(int oldPath[], int newPath[], int numNodes) {
         }
 
 
-
+        IntQueue k=ans[ans_index];
+        for(int i=0;i<numNodes;i++){
+          printf("%d ",dequeueInt(&k));
+        }
 
         ans_found=1;
         IntQueue qtemp=ans[ans_index];
@@ -552,9 +558,13 @@ void updateRound(int oldPath[], int newPath[], int numNodes) {
         ans_index++;
 
 
+
+        printf("\n\n");
+        
+        printf("==%d %d %d==\n",max_distance,max_distance_index_lowerbound,max_distance_index_upperbound);
     }
 
-    printf("%d\n",ans_index);
+    printf("%d\n",ans_index-1);
     for(int i=0;i<ans_index;i++){
         for(int j=0;j<numNodes;j++){
             printf("%d ", dequeueInt(&ans[i]));
@@ -562,22 +572,18 @@ void updateRound(int oldPath[], int newPath[], int numNodes) {
         printf("\n");
     }    
 
+    
+    printf("\n\n");
+
+    printList(head_route);
+
+
 }
 
 int main() {
-    int numNodes=-1;
-    
-    scanf("%d",&numNodes);
-    int oldPath[numNodes];
-    int newPath[numNodes];
-
-    for(int i=0;i<numNodes;i++){
-        scanf("%d",&oldPath[i]);
-    }
-    for(int i=0;i<numNodes;i++){
-        scanf("%d",&newPath[i]);
-    }
-
+    int oldPath[] = {7, 2, 9, 10, -1, -1, -1, 8, 1, 3, 11, -1};
+    int newPath[] = {4, 6, 1, 2, 5, 3, 11, -1, -1, -1, -1, -1};
+    int numNodes = 12;
 
 
     updateRound(oldPath, newPath, numNodes);
