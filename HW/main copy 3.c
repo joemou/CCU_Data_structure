@@ -4,29 +4,25 @@
 #define MAX_SIZE 10000
 #define debug printf("*");
 
-//For queue
+//for queue
 typedef struct {
     int arr[MAX_SIZE];
     int front;
     int rear;
 } IntQueue;
 
-//Initialize the queue
 void initializeIntQueue(IntQueue* queue) {
     queue->front = -1;
     queue->rear = -1;
 }
 
-//Empty or not
 int isIntQueueEmpty(IntQueue* queue) {
     return (queue->front == -1 && queue->rear == -1);
 }
 
-//Full or not
 int isIntQueueFull(IntQueue* queue) {
     return (queue->rear + 1) % MAX_SIZE == queue->front;
 }
-
 
 void enqueueInt(IntQueue* queue, int value) {
     if (isIntQueueFull(queue)) {
@@ -278,6 +274,7 @@ void updateRound(int oldPath[], int newPath[], int numNodes) {
 
 
     //Initailze route
+    
     while(temp!=NULL){
         if(peekFirstElement(temp)!=-1){
             insertAtBottom(&head_route);
@@ -285,7 +282,7 @@ void updateRound(int oldPath[], int newPath[], int numNodes) {
         }
         temp = temp->next;
     }
-    //Record isolated node which is connected in new path
+    //Record solitude node which is connected in new path
     IntQueue solitude_node;
     initializeIntQueue(&solitude_node);
     for (int i = 0; i < numNodes;i++){
@@ -427,7 +424,14 @@ void updateRound(int oldPath[], int newPath[], int numNodes) {
         for(int i=0;i<max_distance_index_upperbound;i++){
             temp2=temp2->next;
         }
-
+        printf("+\n");
+        printList(head_route);
+        printf("=移動node=");
+        printf("\n");
+        printVector(temp->vec);
+        printVector(temp2->vec);
+        printf("\n");
+        printf("====\n"); 
         //Prune
         //Temp data to temp2
         while(!vector_isEmpty(temp->vec)){
@@ -470,7 +474,14 @@ void updateRound(int oldPath[], int newPath[], int numNodes) {
             deleteNodeAtN(&head_route,max_distance_index_lowerbound);
         }
         
-
+        printf("delete\n");
+        printList(head_route);
+        printf("delete\n");
+        
+        printList(last_head_route);
+        printf("\n");
+        printList(head_route);
+        
 
         //Insert ans from route
         temp=last_head_route;
@@ -499,11 +510,12 @@ void updateRound(int oldPath[], int newPath[], int numNodes) {
         }
         ans_index++;
 
-
+        printf("%d\n",ans_index);
         
         temp=temp->next;
         //Shortcut
-
+        printVector(temp->vec);
+        printVector(temp2->vec);
         
         int shortcut=0;
         while(temp!=temp2){
@@ -520,7 +532,11 @@ void updateRound(int oldPath[], int newPath[], int numNodes) {
 
 
 
+        IntQueue k=ans[ans_index-1];
 
+        for(int i=0;i<numNodes;i++){
+          printf("%d ",dequeueInt(&k));
+        }
         ans_found=1;
         IntQueue qtemp=ans[ans_index-1];
         for(int i=0;i<numNodes-1;i++){
@@ -533,6 +549,10 @@ void updateRound(int oldPath[], int newPath[], int numNodes) {
 
         
         
+        printf("\n\n");
+        
+        printf("==%d %d %d==\n",max_distance,max_distance_index_lowerbound,max_distance_index_upperbound);
+
 
     }
 
