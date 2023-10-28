@@ -1,2 +1,0 @@
-            printf("==%d %d==\n",move_node,find_node);
-            printVector(temp2->vec);
