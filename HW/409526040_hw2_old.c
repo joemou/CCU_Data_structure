@@ -265,24 +265,14 @@ Node* copyLinkedList(Node* original) {
     return newHead;
 }
 
-
 struct Activity {
     int start, finish, duration;
 };
 
-int activitySelection(struct Activity activities[], int n, int **low, int **up, int *index) {
-    
-    int max=0;
-    
+void activitySelection(struct Activity activities[], int n) {
     // Calculate duration for each activity
     for (int i = 0; i < n; i++) {
-        if(activities[i].finish==-1){
-            activities[i].duration = -99999;
-        }
-        else{
-            activities[i].duration = activities[i].finish - activities[i].start;
-        }
-        
+        activities[i].duration = activities[i].finish - activities[i].start;
     }
 
     // Sort activities by duration in descending order (using bubble sort for simplicity)
@@ -297,18 +287,14 @@ int activitySelection(struct Activity activities[], int n, int **low, int **up, 
     }
 
     // Select activities
-    
+    printf("Selected Activities:\n");
     int endTime = 0;
     for (int i = 0; i < n; i++) {
-        if (activities[i].start > endTime&&activities[i].duration>0) {
-            *low[*(index)]=activities[i].start;
-            *up[*(index)]=activities[i].finish;
-            (*index)++;
-            max+=activities[i].finish-activities[i].start;
+        if (activities[i].start > endTime) {
+            printf("(%d, %d)\n", activities[i].start, activities[i].finish);
             endTime = activities[i].finish;
         }
     }
-    return max;
 }
 
 
@@ -316,7 +302,7 @@ int activitySelection(struct Activity activities[], int n, int **low, int **up, 
 
 //func for update step
 void updateRound(int oldPath[], int newPath[], int numNodes) {  
-    
+
     //Iniatilize the first node of the route
     Node *head_route = createNode();
     Node *temp = head_route;
@@ -398,11 +384,9 @@ void updateRound(int oldPath[], int newPath[], int numNodes) {
     //Prune and shortcut
     while(!ans_found){
         
-        int mode=0; //1 is original way 2 is greedy prune
-
         Node *last_head_route = copyLinkedList(head_route);
         //Prune the route
-        //Mode 1 calc the largest distance
+        //Prune calc distance
         int max_distance=-1;//Record max distance
         int max_distance_index_lowerbound=-1;//Record index
         int max_distance_index_upperbound=-1;
@@ -457,306 +441,130 @@ void updateRound(int oldPath[], int newPath[], int numNodes) {
 
         }
         
-        //Mode 2 for greedy activity selection 
-        
-        struct Activity activities[numNodes];
-        Node *temp6=head_route;
-        for(int i=0;i<numNodes;i++){
-            Node *temp5=head_route;
-            activities[i].start=i;
-            int count = 0;
-            
-            if(newPath[peekFirstElement(temp6)]!=-1){
-                while(temp5!=NULL){
-                    if(findElement(temp5->vec,newPath[peekFirstElement(temp6)])!=-1){
-                        activities[i].finish=count;
-                        break;
-                    }
-                    count++;
-                    temp5=temp5->next;
-                }
-            }
-            else{
-                activities[i].finish=-1;
-            }
-            temp6=temp6->next;
-        }
-        int maxium_greedy_ans=0;
-        int *greedyupperbound=(int *)malloc(numNodes * sizeof(int));;
-        int *greedylowerbound=(int *)malloc(numNodes * sizeof(int));;
-        int greedyindex=0;
-        
-        maxium_greedy_ans = activitySelection(activities, numNodes, &greedylowerbound, &greedyupperbound, &greedyindex);
-
-
-        if(max_distance>maxium_greedy_ans){
-            mode=1;
-        }
-        else{
-            mode=2;
-        }
-
+        //For greedy activity selection
 
         //Prune and Shortcut
         
-        if(mode==1){
-
-        
-            Node *temp2=head_route;
-            temp=head_route;
+        //Prune if index lowerbound is not the start point
+        Node *temp2=head_route;
+        temp=head_route;
         
 
-            //move temp to lowerbound
-            //start point and route start is same deal with it latter
-            for(int i=0;i<max_distance_index_lowerbound;i++){
-                temp=temp->next;
-            }
-            //move temp2 to upperbound
-            for(int i=0;i<max_distance_index_upperbound;i++){
-                temp2=temp2->next;
-            }
-
-            //Prune
-            //Temp data to temp2
-            while(!vector_isEmpty(temp->vec)){
-                pushElement(temp2->vec,Vector_dequeueElement(temp->vec));
-            }
-    
-            //Shortcut
+        //move temp to lowerbound
+        //start point and route start is same deal with it latter
+        for(int i=0;i<max_distance_index_lowerbound;i++){
             temp=temp->next;
-            while(temp!=temp2){
+        }
+        //move temp2 to upperbound
+        for(int i=0;i<max_distance_index_upperbound;i++){
+            temp2=temp2->next;
+        }
+
+        //Prune
+        //Temp data to temp2
+        while(!vector_isEmpty(temp->vec)){
+            pushElement(temp2->vec,Vector_dequeueElement(temp->vec));
+        }
+    
+        //Shortcut
+        temp=temp->next;
+        while(temp!=temp2){
             
 
-                int move_node=peekFirstElement(temp);
-                int find_node=newPath[move_node];
+            int move_node=peekFirstElement(temp);
+            int find_node=newPath[move_node];
 
-                if(find_node==-1){
+            if(find_node==-1){
                     
-                }
-                else{
-                    Node *temp3=head_route;
+            }
+            else{
+                Node *temp3=head_route;
                 
-                    while(temp3!=NULL){
+                while(temp3!=NULL){
                         
-                        if(findElement(temp3->vec,find_node)!=-1){
-                            while(!vector_isEmpty(temp->vec)){
-                                pushElement(temp3->vec,Vector_dequeueElement(temp->vec));
+                    if(findElement(temp3->vec,find_node)!=-1){
+                        while(!vector_isEmpty(temp->vec)){
+                            pushElement(temp3->vec,Vector_dequeueElement(temp->vec));
                             
-                            }
-                            break;
                         }
-                        temp3=temp3->next;
-                    }    
-                }
-                temp=temp->next; 
+                        break;
+                    }
+                    temp3=temp3->next;
+                }    
             }
-
-
-            //Delete node
-
-            for(int i=0;i<max_distance;i++){
-                deleteNodeAtN(&head_route,max_distance_index_lowerbound);
-            }
+            temp=temp->next; 
         }
-        else{
-            for(int i=0;i<greedyindex;i++){
-                Node *temp2=head_route;
-                temp=head_route;
-                max_distance_index_lowerbound=greedylowerbound[i];
-                max_distance_index_upperbound=greedyupperbound[i];
-        
-
-                //move temp to lowerbound
-                //start point and route start is same deal with it latter
-                for(int i=0;i<max_distance_index_lowerbound;i++){
-                    temp=temp->next;
-                }
-                //move temp2 to upperbound
-                for(int i=0;i<max_distance_index_upperbound;i++){
-                    temp2=temp2->next;
-                }
-
-                //Prune
-                //Temp data to temp2
-                while(!vector_isEmpty(temp->vec)){
-                    pushElement(temp2->vec,Vector_dequeueElement(temp->vec));
-                }
-    
-                //Shortcut
-                temp=temp->next;
-                while(temp!=temp2){
-            
-
-                    int move_node=peekFirstElement(temp);
-                    int find_node=newPath[move_node];
-
-                    if(find_node==-1){
-                    
-                    }
-                    else{
-                        Node *temp3=head_route;
-                
-                        while(temp3!=NULL){
-                        
-                            if(findElement(temp3->vec,find_node)!=-1){
-                                while(!vector_isEmpty(temp->vec)){
-                                    pushElement(temp3->vec,Vector_dequeueElement(temp->vec));
-                            
-                                }
-                                break;
-                            }
-                            temp3=temp3->next;
-                        }    
-                    }
-                    temp=temp->next; 
-                }
 
 
-                //Delete node
+        //Delete node
 
-                for(int i=0;i<max_distance;i++){
-                    deleteNodeAtN(&head_route,max_distance_index_lowerbound);
-                }
-            }
+        for(int i=0;i<max_distance;i++){
+            deleteNodeAtN(&head_route,max_distance_index_lowerbound);
         }
         
+
+
+        //Insert ans from route
+        temp=last_head_route;
+        temp2=last_head_route;
         int arr[numNodes];
-        if(mode==1){
-            //Insert ans from route
-            temp=last_head_route;
-            Node *temp2=last_head_route;
-
-            //find_lowerbound
-            for(int i=0;i<max_distance_index_lowerbound;i++){
-                temp=temp->next;
-            }
-            for(int i=0;i<max_distance_index_upperbound;i++){
-                temp2=temp2->next;
-            }
-
-            //intiailize from last ans
-            for(int i=0;i<numNodes;i++){
-                arr[i]=dequeueInt(&ans[ans_index-1]);//get value
-                enqueueInt(&ans[ans_index-1],arr[i]);//put back
-            }
-
-
-        
-            //prune
-            arr[peekFirstElement(temp)]=newPath[peekFirstElement(temp)];
-            for(int i=0;i<numNodes;i++){
-                enqueueInt(&ans[ans_index],arr[i]);
-            }
-            ans_index++;
-
-
-        
+        //find_lowerbound
+        for(int i=0;i<max_distance_index_lowerbound;i++){
             temp=temp->next;
-            //Shortcut
-
-        
-            int shortcut=0;
-            while(temp!=temp2){
-                shortcut=1;
-                arr[peekFirstElement(temp)]=newPath[peekFirstElement(temp)];
-                temp=temp->next;
-            }
-            if(shortcut){
-                for(int i=0;i<numNodes;i++){    
-                    enqueueInt(&ans[ans_index],arr[i]);
-                }
-                ans_index++;
-            }
-            ans_found=1;
-            IntQueue qtemp=ans[ans_index-1];
-            for(int i=0;i<numNodes-1;i++){
-                int k = dequeueInt(&qtemp);
-                if(newPath[i]!=k){
-                    ans_found=0;
-                    break;
-                }
-            }
         }
-        else{
-            for(int i=0; i<greedyindex;i++){
-                //Insert ans from route
-                temp=last_head_route;
-                Node *temp2=last_head_route;
+        for(int i=0;i<max_distance_index_upperbound;i++){
+            temp2=temp2->next;
+        }
 
-                max_distance_index_lowerbound=greedylowerbound[i];
-                max_distance_index_upperbound=greedyupperbound[i];
-                //find_lowerbound
-                for(int i=0;i<max_distance_index_lowerbound;i++){
-                    temp=temp->next;
-                }
-                for(int i=0;i<max_distance_index_upperbound;i++){
-                    temp2=temp2->next;
-                }
-
-                if(i==0){
-                    //intiailize from last ans
-                    for(int i=0;i<numNodes;i++){
-                        arr[i]=dequeueInt(&ans[ans_index-1]);//get value
-                        enqueueInt(&ans[ans_index-1],arr[i]);//put back
-                    }
-                }
+        //intiailize from last ans
+        for(int i=0;i<numNodes;i++){
+            arr[i]=dequeueInt(&ans[ans_index-1]);//get value
+            enqueueInt(&ans[ans_index-1],arr[i]);//put back
+        }
 
 
         
-                //prune
-                arr[peekFirstElement(temp)]=newPath[peekFirstElement(temp)];
-            }
-            for(int i=0;i<numNodes;i++){
+        //prune
+        arr[peekFirstElement(temp)]=newPath[peekFirstElement(temp)];
+        for(int i=0;i<numNodes;i++){
+            enqueueInt(&ans[ans_index],arr[i]);
+        }
+        ans_index++;
+
+
+        
+        temp=temp->next;
+        //Shortcut
+
+        
+        int shortcut=0;
+        while(temp!=temp2){
+            shortcut=1;
+            arr[peekFirstElement(temp)]=newPath[peekFirstElement(temp)];
+            temp=temp->next;
+        }
+        if(shortcut){
+            for(int i=0;i<numNodes;i++){    
                 enqueueInt(&ans[ans_index],arr[i]);
             }
             ans_index++;
-
-            int shortcut=0;
-            for(int i=0; i<greedyindex;i++){
-                //Insert ans from route
-                temp=last_head_route;
-                Node *temp2=last_head_route;
-
-                max_distance_index_lowerbound=greedylowerbound[i];
-                max_distance_index_upperbound=greedyupperbound[i];
-                //find_lowerbound
-                for(int i=0;i<max_distance_index_lowerbound;i++){
-                    temp=temp->next;
-                }
-                for(int i=0;i<max_distance_index_upperbound;i++){
-                    temp2=temp2->next;
-                }
-
-                temp=temp->next;
-        
-                
-                while(temp!=temp2){
-                    shortcut=1;
-                    arr[peekFirstElement(temp)]=newPath[peekFirstElement(temp)];
-                    temp=temp->next;
-                }
-
-
-            }
-            if(shortcut){
-                for(int i=0;i<numNodes;i++){    
-                    enqueueInt(&ans[ans_index],arr[i]);
-                }
-                ans_index++;
-            }        
         }
-        IntQueue qtemp = ans[ans_index - 1];
-        for(int i = 0; i < numNodes - 1; i++){
-            if(isIntQueueEmpty(&qtemp)){
-                ans_found = 0;
-                break;
-            }
+
+
+
+
+        ans_found=1;
+        IntQueue qtemp=ans[ans_index-1];
+        for(int i=0;i<numNodes-1;i++){
             int k = dequeueInt(&qtemp);
-            if(newPath[i] != k){
-                ans_found = 0;
+            if(newPath[i]!=k){
+                ans_found=0;
                 break;
             }
         }
+
+        
+        
 
     }
 
@@ -772,7 +580,7 @@ void updateRound(int oldPath[], int newPath[], int numNodes) {
 
 int main() {
     int numNodes=-1;
-
+    
     scanf("%d",&numNodes);
     int oldPath[numNodes];
     int newPath[numNodes];

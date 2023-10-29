@@ -23,9 +23,9 @@ void activitySelection(struct Activity activities[], int n) {
 
     // Select activities
     printf("Selected Activities:\n");
-    int endTime = 0;
+    int endTime = -1;
     for (int i = 0; i < n; i++) {
-        if (activities[i].start >= endTime) {
+        if (activities[i].start > endTime) {
             printf("(%d, %d)\n", activities[i].start, activities[i].finish);
             endTime = activities[i].finish;
         }
@@ -33,10 +33,12 @@ void activitySelection(struct Activity activities[], int n) {
 }
 
 int main() {
-    struct Activity activities[] = {{1, 2}, {2, 5}, {3, 7}, {1, 3}, {5, 9}, {9, 10}};
+    struct Activity activities[] = {{0,3}, {1,2}, {2,3}, {3,4}, {4,6}, {5,6}};
     int n = sizeof(activities)/sizeof(activities[0]);
 
     activitySelection(activities, n);
 
     return 0;
 }
+
+
