@@ -27,7 +27,6 @@
         return (queue->rear + 1) % MAX_SIZE == queue->front;
     }
 
-
     void enqueueInt(IntQueue* queue, int value) {
         if (isIntQueueFull(queue)) {
             printf("Error: Queue is full\n");
@@ -66,8 +65,6 @@
 
         return queue->arr[queue->front];
     }
-
-
 
     // Structure for dynamic vector
     typedef struct {
@@ -114,7 +111,6 @@
     int vector_isEmpty(Vector* v) {
         return v->size == 0;
     }
-
 
     // Structure for linked list node
     typedef struct Node {
@@ -200,8 +196,6 @@
         }
     }
 
-
-
     // Function to print the dynamic vector of a node
     void printVector(Vector* vec) {
         for (int i = 0; i < vec->size; i++) {
@@ -265,7 +259,6 @@
         return newHead;
     }
 
-
     struct Activity {
         int start, finish, duration;
     };
@@ -299,7 +292,7 @@
         // Select activities
         int endTime = -1;
         for (int i = 0; i < n; i++) {
-            if (activities[i].start > endTime&&activities[i].duration>0) {
+            if (activities[i].start >= endTime&&activities[i].duration>0) {
                 low[*(index)]=activities[i].start;
                 up[*(index)]=activities[i].finish;
                 (*index)++;
@@ -309,7 +302,6 @@
         }
         return max;
     }
-
 
     struct activity {
         int start, finish;
@@ -345,7 +337,7 @@
         (*index)++;
    
         for (i = 1; i < n; i++) {
-            if (activities[i].start > endTime) {
+            if (activities[i].start >= endTime) {
                 low[*(index)]=activities[i].start;
                 up[*(index)]=activities[i].finish;
                 max+=activities[i].finish-activities[i].start;
@@ -357,7 +349,23 @@
     }
 
 
+    int bf(struct activity activities[], int n, int *low, int *up, int *index) {
+        for(int k=0;k<n;k++){
+            if(activities[k].finish==-1||((activities[k].finish-activities[k].start)<0)){
+                activities[k].finish=99999;
+                activities[k].start=-99999;
+            }
+        }
 
+        for(int i=0;i<n;i++){
+
+        }
+    }
+    int brute(struct activity activities[],int n,int a,int b){
+        for(int i=0;i<n;i++){
+            
+        }
+    }
     //func for update step
     void updateRound(int oldPath[], int newPath[], int numNodes) {  
         
@@ -436,9 +444,17 @@
             }
             ans_index++;
         }
+        //check whether the last prune ans is goal. if it is break out 
 
-        int ans_found = 0;
-
+        int ans_found = 1;
+        IntQueue qtemp = ans[ans_index - 1];
+        for(int i = 0; i < numNodes - 1; i++){
+            int k = dequeueInt(&qtemp);
+            if(newPath[i] != k){
+                ans_found=0;
+            }
+        }
+        
         //Prune and shortcut
         while(!ans_found){
             
@@ -476,9 +492,6 @@
             int sub_greedyindex=0;
             sub_maxium_greedy_ans = maxium_subset_activitySelection(subactivities, numNodes, sub_greedylowerbound, sub_greedyupperbound, &sub_greedyindex);
     
-           
-            
-            
             //for mode 2 total num greedy
             struct Activity activities[numNodes];
             Node *temp6=head_route;
@@ -741,12 +754,6 @@
         
     }   
 
-    
-
-    
-
-
-
     int main() {
         
         int numNodes=-1;
@@ -761,8 +768,6 @@
         for(int i=0;i<numNodes;i++){
             scanf("%d",&newPath[i]);
         }
-
-
 
         updateRound(oldPath, newPath, numNodes);
         return 0;
