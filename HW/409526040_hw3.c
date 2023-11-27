@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <limits.h>
 
-int V=4;
+int V=5;
 
 // Structure to represent a node in the network
 struct Node {
@@ -59,124 +59,103 @@ int minDistance(int dist[], int sptSet[]) {
     return min_index;
 }
 
-// Function to print the shortest path from source to target
 void printPath(int parent[], int j) {
-    if (parent[j] == -1)
+    if (parent[j] == -1) {
+        printf(" -> %d", j);
         return;
+    }
 
     printPath(parent, parent[j]);
 
     printf(" -> %d", j);
 }
-
-// Function to print the results of Dijkstra's algorithm
-void printSolution(int dist[], int parent[], int src) {
-    printf("Shortest Path from source %d:\n", src);
-    for (int i = 0; i < V; i++) {
-        if (i != src) {
-            printf("Node %d to Node %d: Distance %d | Path: %d", src, i, dist[i], src);
-            printPath(parent, i);
-            printf("\n");
-        }
-    }
+// Function to print the results of Dijkstra's algorithm for minimum total path node weight
+void printSolution(int totalWeight[], int parent[], int src, int dest) {
+    printf("Minimum Total Path Node Weight from Node %d to Node %d:\n", src, dest);
+    printf("Total Weight: %d | Path: %d", totalWeight[dest], dest);
+    printPath(parent, dest);
+    printf("\n");
 }
+// Function to implement Dijkstra's algorithm to find minimum total path node weight
+void dijkstra(struct Network* network, int src, int dest) {
+    int* totalWeight = (int*)malloc(V * sizeof(int));  // Array to store the minimum total path node weight from src to i
+    int* parent = (int*)malloc(V * sizeof(int));       // Array to store the parent node in the shortest path from src to i
+    int* sptSet = (int*)malloc(V * sizeof(int));        // Array to track the inclusion of vertices in the shortest path tree
 
-// Function to implement Dijkstra's algorithm for a given graph
-void dijkstra(struct Network* network, int src) {
-    int dist[V];     // The output array dist[i] holds the shortest distance from src to i
-    int sptSet[V];   // sptSet[i] is true if node i is included in the shortest path tree or the shortest distance from src to i is finalized
-    int parent[V];   // parent[i] holds the previous node in the shortest path from src to i
-
-    // Initialize all distances as INFINITE and sptSet[] as false
+    // Initialize all total weights as INFINITE, parent array as -1, and sptSet as 0
     for (int i = 0; i < V; i++) {
-        dist[i] = INT_MAX;
-        sptSet[i] = 0;
+        totalWeight[i] = INT_MAX;
         parent[i] = -1;
+        sptSet[i] = 0;
     }
 
-    // Distance of source vertex from itself is always 0
-    dist[src] = network->nodes[src]->weight;
+    // Total weight from source to itself is always the weight of the source node
+    totalWeight[src] = network->nodes[src]->weight;
 
-    // Find the shortest path for all nodes
+    // Find minimum total path node weight for all vertices
     for (int count = 0; count < V - 1; count++) {
-        // Pick the minimum distance vertex from the set of vertices not yet processed
-        int u = minDistance(dist, sptSet);
+        // Pick the minimum total path node weight vertex from the set of vertices not yet processed
+        int u = minDistance(totalWeight, sptSet);
 
         // Mark the picked vertex as processed
         sptSet[u] = 1;
 
-        // Update dist value of the adjacent nodes of the picked node
+        // Update totalWeight value of the adjacent vertices of the picked vertex
         for (int v = 0; v < V; v++) {
-            if (!sptSet[v] && network->nodes[v] && dist[u] + network->nodes[v]->weight < dist[v]) {
-                dist[v] = dist[u] + network->nodes[v]->weight;
+            if (!sptSet[v] && network->connections[u][v] && totalWeight[u] != INT_MAX &&
+                totalWeight[u] + network->nodes[v]->weight < totalWeight[v]) {
+                totalWeight[v] = totalWeight[u] + network->nodes[v]->weight;
                 parent[v] = u;
             }
         }
     }
 
-    // Print the constructed distance array and path
-    printSolution(dist, parent, src);
+    // Print the results
+    printSolution(totalWeight, parent, src, dest);
+
+    // Free allocated memory
+    free(totalWeight);
+    free(parent);
+    free(sptSet);
 }
 
 
-/*
-// Function to implement Dijkstra's algorithm for a given graph
-void dijkstra(struct Network* network, int src) {
-    int dist[V];     // The output array dist[i] holds the shortest distance from src to i
-    int sptSet[V];   // sptSet[i] is true if node i is included in the shortest path tree or the shortest distance from src to i is finalized
-    int parent[V];   // parent[i] holds the previous node in the shortest path from src to i
 
-    // Initialize all distances as INFINITE and sptSet[] as false
-    for (int i = 0; i < V; i++) {
-        dist[i] = INT_MAX;
-        sptSet[i] = 0;
-        parent[i] = -1;
-    }
 
-    // Distance of source vertex from itself is always 0
-    dist[src] = 0;
-
-    // Find the shortest path for all nodes
-    for (int count = 0; count < V - 1; count++) {
-        // Pick the minimum distance vertex from the set of vertices not yet processed
-        int u = minDistance(dist, sptSet);
-
-        // Mark the picked vertex as processed
-        sptSet[u] = 1;
-
-        // Update dist value of the adjacent vertices of the picked vertex
-        for (int v = 0; v < V; v++)
-            if (!sptSet[v] && network->connections[u][v] && dist[u] + network->connections[u][v] < dist[v]) {
-                dist[v] = dist[u] + network->connections[u][v];
-                parent[v] = u;
-            }
-    }
-
-    // Print the constructed distance array and path
-    printSolution(dist, parent, src);
-}
-
-*/
 
 int main() {
     // Create a network with 4 nodes
-    struct Network* network = createNetwork(4);
+    struct Network* network = createNetwork(5);
+    V = 5;
 
     // Create nodes and assign weights
     network->nodes[0] = createNode(0, 10);
     network->nodes[1] = createNode(1, 20);
-    network->nodes[2] = createNode(2, 15);
+    network->nodes[2] = createNode(2, 19);
     network->nodes[3] = createNode(3, 25);
+    network->nodes[4] = createNode(4, 17);
 
     // Add connections with weights
     addConnection(network, 0, 1, 5);
     addConnection(network, 0, 2, 8);
-    addConnection(network, 1, 2, 12);
+    addConnection(network, 1, 2, 1);
     addConnection(network, 1, 3, 7);
     addConnection(network, 2, 3, 10);
+    addConnection(network, 3, 4, 10);
+    addConnection(network, 2, 4, 999);
 
-    // Run Dijkstra's algorithm starting from node 0
-    dijkstra(network, 0);
+
+    // Choose start and end points
+    int startNode, endNode;
+    printf("Enter the start node: ");
+    scanf("%d", &startNode);
+    printf("Enter the end node: ");
+    scanf("%d", &endNode);
+
+    // Run Dijkstra's algorithm
+    dijkstra(network, startNode, endNode);
+
+    // ... (existing code)
 
     return 0;
 }

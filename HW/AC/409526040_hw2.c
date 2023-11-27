@@ -10,7 +10,6 @@
         int front;
         int rear;
     } IntQueue;
-
     //Initialize the queue
     void initializeIntQueue(IntQueue* queue) {
         queue->front = -1;
