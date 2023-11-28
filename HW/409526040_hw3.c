@@ -139,7 +139,7 @@ int main() {
     int ans_num = 0;
     // Create nodes and assign weights
     network->nodes[0] = createNode(0, 0);
-    network->nodes[1] = createNode(1    , 1);
+    network->nodes[1] = createNode(1, 1);
     network->nodes[2] = createNode(2, 2);
     network->nodes[3] = createNode(3, 3);
     network->nodes[4] = createNode(4, 4);
