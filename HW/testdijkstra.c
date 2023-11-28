@@ -3,7 +3,6 @@
 #include <limits.h>
 
 int V=5;
-int path[1000][1000];
 
 // Structure to represent a node in the network
 struct Node {
@@ -47,6 +46,7 @@ void addConnection(struct Network* network, int node1, int node2, int weight) {
     network->connections[node1][node2] = weight;
     network->connections[node2][node1] = weight;
 }
+
 // Function to find the vertex with the minimum distance value,
 // from the set of vertices not yet included in the shortest path tree
 int minDistance(int dist[], int sptSet[]) {
@@ -59,12 +59,12 @@ int minDistance(int dist[], int sptSet[]) {
     return min_index;
 }
 
-void printPath(int parent[], int j, int index) {
+void printPath(int parent[], int j) {
     if (parent[j] == -1) {
         printf("%d", j);
         return;
     }
-    printPath(parent, parent[j], index++);
+    printPath(parent, parent[j]);
 
     printf(" -> %d", j);
 }
@@ -72,7 +72,7 @@ void printPath(int parent[], int j, int index) {
 void printSolution(int totalWeight[], int parent[], int src, int dest) {
     printf("Minimum Total Path Node Weight from Node %d to Node %d:\n", src, dest);
     printf("Total Weight: %d | Path: ", totalWeight[dest]);
-    printPath(parent, dest, 0);
+    printPath(parent, dest);
     printf("\n");
 }
 // Function to implement Dijkstra's algorithm to find minimum total path node weight
@@ -135,12 +135,12 @@ int main() {
     network->nodes[4] = createNode(4, 4);
 
     // Add connections with weights
-    addConnection(network, 0, 1, -1);
-    addConnection(network, 0, 2, -1);
-    addConnection(network, 1, 2, -1);
-    addConnection(network, 1, 3, -1);
-    addConnection(network, 2, 3, -1);
-    addConnection(network, 3, 4, -1);
+    addConnection(network, 0, 1, 5);
+    addConnection(network, 0, 2, 8);
+    addConnection(network, 1, 2, 1);
+    addConnection(network, 1, 3, 7);
+    addConnection(network, 2, 3, 10);
+    addConnection(network, 3, 4, 10);
 
 
     // Choose start and end points
@@ -152,6 +152,8 @@ int main() {
 
     // Run Dijkstra's algorithm
     dijkstra(network, startNode, endNode);
+
+    // ... (existing code)
 
     return 0;
 }
