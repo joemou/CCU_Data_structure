@@ -2,14 +2,16 @@
 #include <stdlib.h>
 #include <limits.h>
 
-int V = 5;
+int V;
 int path[1000][1000];
 int path_end[1000];
 
 // Structure to represent a node in the network
 struct Node {
     int nodeID; // Node identifier
-    int weight; // Weight of the node
+    int weight; // Weight limit of the node
+    int now_weight; //The weight the node have
+    int capacity_remained; //diff between limit and now_wewight
 };
 
 // Structure to represent a network
@@ -24,6 +26,8 @@ struct Node* createNode(int nodeID, int weight) {
     struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
     newNode->nodeID = nodeID;
     newNode->weight = weight;
+    newNode->now_weight = 0;
+    newNode->capacity_remained = 0;//cpacity remained in t sec
     return newNode;
 }
 
@@ -110,8 +114,8 @@ void dijkstra(struct Network* network, int src, int dest, int* ans_num) {
 
         // Update totalWeight value of the adjacent vertices of the picked vertex
         for (int v = 0; v < V; v++) {
-            if (!sptSet[v] && network->connections[u][v] && totalWeight[u] != INT_MAX &&
-                totalWeight[u] + network->nodes[v]->weight < totalWeight[v]) {
+            //if the node no visited, connected, with weight and weight larger than new path, update 
+            if (!sptSet[v] && network->connections[u][v] && totalWeight[u] != INT_MAX &&totalWeight[u] + network->nodes[v]->weight < totalWeight[v]) {
                 totalWeight[v] = totalWeight[u] + network->nodes[v]->weight;
                 parent[v] = u;
                 path_index++;
@@ -133,37 +137,71 @@ void dijkstra(struct Network* network, int src, int dest, int* ans_num) {
 
 int main() {
     // Create a network with 4 nodes
-    struct Network* network = createNetwork(5);
-    V = 5;
+    int nodes = INT_MIN, links = INT_MIN, timeslot = INT_MIN, req = INT_MIN;
+    scanf("%d %d %d %d", &nodes, &links, &timeslot, &req);
+    struct Network* network = createNetwork(nodes);
+    V = nodes;
     int ans_num = 0;
+
     // Create nodes and assign weights
-    network->nodes[0] = createNode(0, 0);
-    network->nodes[1] = createNode(1, 1);
-    network->nodes[2] = createNode(99, 2);
-    network->nodes[3] = createNode(3, 3);
-    network->nodes[4] = createNode(4, 4);
+    for (int i = 0; i < V;i++){
+        int id, weight;
+        scanf("%d %d",&id,&weight);
+        network->nodes[i] = createNode(id, weight);
+    }
 
     // Add connections with weights
-    addConnection(network, 0, 1, -1);
-    addConnection(network, 0, 2, -1);
-    addConnection(network, 1, 2, -1);
-    addConnection(network, 1, 3, -1);
-    addConnection(network, 2, 3, -1);
-    addConnection(network, 3, 4, -1);
-
-    // Choose start and end points
-    int startNode, endNode;
-    printf("Enter the start node: ");
-    scanf("%d", &startNode);
-    printf("Enter the end node: ");
-    scanf("%d", &endNode);
-
-    // Run Dijkstra's algorithm
-    dijkstra(network, startNode, endNode, &ans_num);
-
-    for (int i = 0; i < path_end[0]; i++) {
-        printf("%d ", path[0][i]);
+    for (int i = 0; i < links;i++){
+        int uselessID, ID1, ID2;
+        scanf("%d %d %d",&uselessID,&ID1,&ID2);
+        
+        //convert nodeID to node list num in network
+        int node_link1, node_link2;
+        for (int i = 0; i < V; i++){
+            if(network->nodes[i]->nodeID==ID1){
+                node_link1 = i;
+            }
+            if(network->nodes[i]->nodeID==ID2){
+                node_link2 = i;
+            }
+        }
+        
+        addConnection(network, node_link1, node_link2, 1);
     }
+    
+    // Choose start and end points
+    for (int i = 0; i < req;i++){
+        int startNodeID, endNodeID;
+        int reqid;
+        scanf("%d", &reqid);
+        printf("Enter the start node: ");
+        scanf("%d", &startNodeID);
+        printf("Enter the end node: ");
+        scanf("%d", &endNodeID);
+
+        //convert nodeID to node list num in network
+        //and calc remain capacity
+        int startNode;
+        int endNode;
+        for (int i = 0; i < V; i++){
+            if(network->nodes[i]->nodeID==startNodeID){
+                startNode = i;
+            }
+            if(network->nodes[i]->nodeID==endNodeID){
+                endNode = i;
+            }
+            network->nodes[i]->capacity_remained = (network->nodes[i]->weight)*timeslot - network->nodes[i]->now_weight;
+        }
+
+        // Run Dijkstra's algorithm
+        dijkstra(network, startNode, endNode, &ans_num);
+
+        for (int i = 0; i < path_end[0]; i++) {
+            printf("%d ", path[0][i]);
+        }
+    }
+    
+
 
     return 0;
 }
