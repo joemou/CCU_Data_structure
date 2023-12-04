@@ -14,3 +14,18 @@
 1 0 99
 2 99 4
 
+
+// Function to recursively build the tree
+struct Node* buildTree(double front, double rear) {
+    if (front - rear==0.5||rear-front==0.5) {
+        return NULL;
+    }
+
+    double mid = (front + rear) / 2;
+    struct Node* root = createNode(front, mid, rear);
+    root->left = buildTree(front, mid);
+    root->right = buildTree(mid, rear);
+
+    return root;
+}
+
