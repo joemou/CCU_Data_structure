@@ -6,6 +6,8 @@ int V;
 int path[1000][1000];
 int path_end[1000];
 
+
+
 // Structure to represent a node in the network
 struct Node {
     int nodeID; // Node identifier
@@ -67,15 +69,16 @@ int minDistance(int dist[], int sptSet[]) {
 
 void printPath(struct Network* network, int parent[], int j, int index, int ans_num) {
     if (parent[j] == -1) {
-        index -= 1;
-        printf(" -> %d(%d)", network->nodes[j]->nodeID, index);
-        path[ans_num][index] = network->nodes[j]->nodeID;
+        index += 1;
+        printf(" start-> %d(%d)", network->nodes[j]->nodeID, index);
+        path[ans_num][index-1] = network->nodes[j]->nodeID;
+        path_end[ans_num] = index-1;
+        printf("[%d]", ans_num);
         return;
     }
-    index -= 1;
+    index += 1;
     printPath(network, parent, parent[j], index, ans_num);
-
-    path[ans_num][index] = network->nodes[j]->nodeID;
+    path[ans_num][index-1] = network->nodes[j]->nodeID;
     printf(" -> %d(%d)", network->nodes[j]->nodeID, index);
 }
 
@@ -88,7 +91,7 @@ void printSolution(struct Network* network, int totalWeight[], int parent[], int
 }
 
 // Function to implement Dijkstra's algorithm to find minimum total path node weight
-void dijkstra(struct Network* network, int src, int dest, int* ans_num) {
+void dijkstra(struct Network* network, int src, int dest, int ans_num) {
     int* totalWeight = (int*)malloc(V * sizeof(int)); // Array to store the minimum total path node weight from src to i
     int* parent = (int*)malloc(V * sizeof(int));      // Array to store the parent node in the shortest path from src to i
     int* sptSet = (int*)malloc(V * sizeof(int));       // Array to track the inclusion of vertices in the shortest path tree
@@ -118,16 +121,13 @@ void dijkstra(struct Network* network, int src, int dest, int* ans_num) {
             if (!sptSet[v] && network->connections[u][v] && totalWeight[u] != INT_MAX &&totalWeight[u] + network->nodes[v]->weight < totalWeight[v]) {
                 totalWeight[v] = totalWeight[u] + network->nodes[v]->weight;
                 parent[v] = u;
-                path_index++;
             }
         }
     }
 
-    path_end[0] = path_index;
     // Print the results
-    printSolution(network, totalWeight, parent, src, dest, path_index, *ans_num);
+    printSolution(network, totalWeight, parent, src, dest, path_index, ans_num);
 
-    *(ans_num) += 1;
 
     // Free allocated memory
     free(totalWeight);
@@ -141,7 +141,6 @@ int main() {
     scanf("%d %d %d %d", &nodes, &links, &timeslot, &req);
     struct Network* network = createNetwork(nodes);
     V = nodes;
-    int ans_num = 0;
 
     // Create nodes and assign weights
     for (int i = 0; i < V;i++){
@@ -194,13 +193,17 @@ int main() {
         }
 
         // Run Dijkstra's algorithm
-        dijkstra(network, startNode, endNode, &ans_num);
+        dijkstra(network, startNode, endNode, i);
 
-        for (int i = 0; i < path_end[0]; i++) {
-            printf("%d ", path[0][i]);
-        }
+
     }
-    
+    printf("\n");
+    for (int k = 0; k < req;k++){
+        for (int i = path_end[k]; i >= 0 ; i--) {
+            printf("%d ", path[k][i]);
+        }
+        printf("\n");
+    }
 
 
     return 0;
