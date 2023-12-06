@@ -55,85 +55,6 @@ void addConnection(struct Network* network, int node1, int node2, int weight) {
     network->connections[node2][node1] = weight;
 }
 
-// Function to find the vertex with the minimum distance value,
-// from the set of vertices not yet included in the shortest path tree
-int minDistance(int dist[], int sptSet[]) {
-    int min = INT_MAX, min_index;
-
-    for (int v = 0; v < V; v++)
-        if (sptSet[v] == 0 && dist[v] <= min)
-            min = dist[v], min_index = v;
-
-    return min_index;
-}
-
-void printPath(struct Network* network, int parent[], int j, int index, int ans_num) {
-    if (parent[j] == -1) {
-        index += 1;
-        printf(" start-> %d(%d)", network->nodes[j]->nodeID, index);
-        path[ans_num][index-1] = network->nodes[j]->nodeID;
-        path_end[ans_num] = index-1;
-        printf("[%d]", ans_num);
-        return;
-    }
-    index += 1;
-    printPath(network, parent, parent[j], index, ans_num);
-    path[ans_num][index-1] = network->nodes[j]->nodeID;
-    printf(" -> %d(%d)", network->nodes[j]->nodeID, index);
-}
-
-// Function to print the results of Dijkstra's algorithm for minimum total path node weight
-void printSolution(struct Network* network, int totalWeight[], int parent[], int src, int dest, int index, int ans_num) {
-    printf("Minimum Total Path Node Weight from Node %d to Node %d:\n", src, dest);
-    printf("Total Weight: %d | Path: ", totalWeight[dest]);
-    printPath(network, parent, dest, index, ans_num);
-    printf("\n");
-}
-
-// Function to implement Dijkstra's algorithm to find minimum total path node weight
-void dijkstra(struct Network* network, int src, int dest, int ans_num) {
-    int* totalWeight = (int*)malloc(V * sizeof(int)); // Array to store the minimum total path node weight from src to i
-    int* parent = (int*)malloc(V * sizeof(int));      // Array to store the parent node in the shortest path from src to i
-    int* sptSet = (int*)malloc(V * sizeof(int));       // Array to track the inclusion of vertices in the shortest path tree
-    int path_index = 0;
-
-    // Initialize all total weights as INFINITE, parent array as -1, and sptSet as 0
-    for (int i = 0; i < V; i++) {
-        totalWeight[i] = INT_MAX;
-        parent[i] = -1;
-        sptSet[i] = 0;
-    }
-
-    // Total weight from source to itself is always the weight of the source node
-    totalWeight[src] = network->nodes[src]->weight;
-
-    // Find minimum total path node weight for all vertices
-    for (int count = 0; count < V - 1; count++) {
-        // Pick the minimum total path node weight vertex from the set of vertices not yet processed
-        int u = minDistance(totalWeight, sptSet);
-
-        // Mark the picked vertex as processed
-        sptSet[u] = 1;
-
-        // Update totalWeight value of the adjacent vertices of the picked vertex
-        for (int v = 0; v < V; v++) {
-            //if the node no visited, connected, with weight and weight larger than new path, update 
-            if (!sptSet[v] && network->connections[u][v] && totalWeight[u] != INT_MAX &&totalWeight[u] + network->nodes[v]->weight < totalWeight[v]) {
-                totalWeight[v] = totalWeight[u] + network->nodes[v]->weight;
-                parent[v] = u;
-            }
-        }
-    }
-
-    // Print the results
-    printSolution(network, totalWeight, parent, src, dest, path_index, ans_num);
-
-
-    // Free allocated memory
-    free(totalWeight);
-    free(parent);
-    free(sptSet);
-}
 // Define the structure for a node in the tree
 struct Node {
     int front;
@@ -196,19 +117,113 @@ void displayTree(struct Node* root, int id[],int time) {
     }
 }
 
-void ExamineTreeload(struct Node* root, int **load,int time) {
+int ExamineTreeload(struct Node* root, int time, int **load, int **limit, int path_id[]) {
     if (root != NULL) {
        
         if (root->left != NULL) {
-            ExamineTreeload(root->left,load,time);
+            ExamineTreeload(root->left,time,load,limit);
         }
-        
         if (root->right != NULL) {
-            ExamineTreeload(root->right,load,time);
+            ExamineTreeload(root->right,time,load,limit);
         }
+        if
+
 
     }
 }
+
+// Function to find the vertex with the minimum distance value,
+// from the set of vertices not yet included in the shortest path tree
+int minDistance(int dist[], int sptSet[]) {
+    int min = INT_MAX, min_index;
+
+    for (int v = 0; v < V; v++)
+        if (sptSet[v] == 0 && dist[v] <= min)
+            min = dist[v], min_index = v;
+
+    return min_index;
+}
+
+void printPath(struct Network* network, int parent[], int j, int index, int ans_num) {
+    if (parent[j] == -1) {
+        index += 1;
+        printf(" start-> %d(%d)", network->nodes[j]->nodeID, index);
+        path[ans_num][index-1] = network->nodes[j]->nodeID;
+        path_end[ans_num] = index;
+        printf("[%d]", ans_num);
+        return;
+    }
+    index += 1;
+    printPath(network, parent, parent[j], index, ans_num);
+    path[ans_num][index-1] = network->nodes[j]->nodeID;
+    printf(" -> %d(%d)", network->nodes[j]->nodeID, index);
+}
+
+// Function to print the results of Dijkstra's algorithm for minimum total path node weight
+void printSolution(struct Network* network, int totalWeight[], int parent[], int src, int dest, int index, int ans_num) {
+    printf("Minimum Total Path Node Weight from Node %d to Node %d:\n", src, dest);
+    printf("Total Weight: %d | Path: ", totalWeight[dest]);
+    printPath(network, parent, dest, index, ans_num);
+    printf("\n");
+}
+
+// Function to implement Dijkstra's algorithm to find minimum total path node weight
+void dijkstra(struct Network* network, int src, int dest, int ans_num,int **load,int **limit, int req_time){
+    int* totalWeight = (int*)malloc(V * sizeof(int)); // Array to store the minimum total path node weight from src to i
+    int* parent = (int*)malloc(V * sizeof(int));      // Array to store the parent node in the shortest path from src to i
+    int* sptSet = (int*)malloc(V * sizeof(int));       // Array to track the inclusion of vertices in the shortest path tree
+    int path_index = 0;
+
+    // Initialize all total weights as INFINITE, parent array as -1, and sptSet as 0
+    for (int i = 0; i < V; i++) {
+        totalWeight[i] = INT_MAX;
+        parent[i] = -1;
+        sptSet[i] = 0;
+    }
+
+    // Total weight from source to itself is always the weight of the source node
+    totalWeight[src] = network->nodes[src]->weight;
+
+    // Find minimum total path node weight for all vertices
+    for (int count = 0; count < V - 1; count++) {
+        // Pick the minimum total path node weight vertex from the set of vertices not yet processed
+        int u = minDistance(totalWeight, sptSet);
+
+        // Mark the picked vertex as processed
+        sptSet[u] = 1;
+
+        // Update totalWeight value of the adjacent vertices of the picked vertex
+        for (int v = 0; v < V; v++) {
+            //if the node no visited, connected, with weight and weight larger than new path, update 
+            if (!sptSet[v] && network->connections[u][v] && totalWeight[u] != INT_MAX &&totalWeight[u] + network->nodes[v]->weight < totalWeight[v]) {
+                totalWeight[v] = totalWeight[u] + network->nodes[v]->weight;
+                parent[v] = u;
+            }
+        }
+    }
+
+    // Print the results
+    printSolution(network, totalWeight, parent, src, dest, path_index, ans_num);
+
+    struct Node *root = buildTree(1, path_end[req_time], 1);
+
+    int path_id[path_end[req_time]]//construct id list and invert path id
+    for (int i = 1; i <=path_end[k] ; i++) {
+        printf("%d ", path[k][path_end[k]-i]);
+        path_id[i - 1] = path[k][path_end[k] - i];
+    }
+    ExamineTreeload(root, time, load, limit, path_id)
+
+    
+
+
+
+    // Free allocated memory
+    free(totalWeight);
+    free(parent);
+    free(sptSet);
+}
+
 
 
 
@@ -225,6 +240,26 @@ int main() {
         int id, weight;
         scanf("%d %d",&id,&weight);
         network->nodes[i] = createNode(id, weight);
+    }
+
+    //create matrix store weight and limit
+    int **load = (int **)malloc(nodes * sizeof(int *));
+    for (int i = 0; i < time; i++) {
+        load[i] = (int *)malloc(time * sizeof(int));
+    }
+    int **limit = (int **)malloc(nodes * sizeof(int *));
+    for (int i = 0; i < time; i++) {
+        limit[i] = (int *)malloc(time * sizeof(int));
+    }
+    for(int i=0;i<nodes;i++){
+        for (int k = 0; k < time;k++){
+            load[i][k] = 0;
+        }
+    }
+    for(int i=0;i<nodes;i++){
+        for (int k = 0; k < time;k++){
+            limit[i][k] = network->nodes[i]->weight;
+        }
     }
 
     // Add connections with weights
@@ -271,18 +306,9 @@ int main() {
         }
 
         // Run Dijkstra's algorithm
-        dijkstra(network, startNode, endNode, i);
+        dijkstra(network, startNode, endNode, i, load, limit, i);
 
     }
-    printf("\n");
-    for (int k = 0; k < req;k++){
-        for (int i = path_end[k]; i >= 0 ; i--) {
-            printf("%d ", path[k][i]);
-        }
-        printf("\n");
-    }
-
-
 
     return 0;
 }

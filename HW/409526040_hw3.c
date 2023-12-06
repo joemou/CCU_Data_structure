@@ -55,6 +55,8 @@ void addConnection(struct Network* network, int node1, int node2, int weight) {
     network->connections[node2][node1] = weight;
 }
 
+
+
 // Function to find the vertex with the minimum distance value,
 // from the set of vertices not yet included in the shortest path tree
 int minDistance(int dist[], int sptSet[]) {
@@ -72,7 +74,7 @@ void printPath(struct Network* network, int parent[], int j, int index, int ans_
         index += 1;
         printf(" start-> %d(%d)", network->nodes[j]->nodeID, index);
         path[ans_num][index-1] = network->nodes[j]->nodeID;
-        path_end[ans_num] = index-1;
+        path_end[ans_num] = index;
         printf("[%d]", ans_num);
         return;
     }
@@ -127,8 +129,7 @@ void dijkstra(struct Network* network, int src, int dest, int ans_num) {
 
     // Print the results
     printSolution(network, totalWeight, parent, src, dest, path_index, ans_num);
-
-
+    
     // Free allocated memory
     free(totalWeight);
     free(parent);
@@ -203,9 +204,10 @@ int main() {
 
     }
     printf("\n");
+
     for (int k = 0; k < req;k++){
-        for (int i = path_end[k]; i >= 0 ; i--) {
-            printf("%d ", path[k][i]);
+        for (int i = 1; i <=path_end[k] ; i++) {
+            printf("%d ", path[k][path_end[k]-i]);
         }
         printf("\n");
     }
