@@ -15,20 +15,8 @@
 2 99 4
 
 
-// Function to recursively build the tree
-struct Node* buildTree(double front, double rear) {
-    if (front - rear==0.5||rear-front==0.5) {
-        return NULL;
-    }
 
-    double mid = (front + rear) / 2;
-    struct Node* root = createNode(front, mid, rear);
-    root->left = buildTree(front, mid);
-    root->right = buildTree(mid, rear);
-
-    return root;
-}
-5 4 7 1
+5 4 2 1
 0 5
 10 6
 8 7
@@ -38,4 +26,32 @@ struct Node* buildTree(double front, double rear) {
 1 15 20
 2 8 15
 3 0 10
-0 10 20
+1 10 20
+
+
+
+8 11 11 3
+0 6
+1 6
+2 6
+3 6
+4 6
+5 6
+6 6
+7 6
+0 0 1
+1 0 2
+2 0 4
+3 1 2
+4 2 4
+5 1 3
+6 2 5
+7 4 5
+8 4 6
+9 5 6
+10 6 7
+0 0 7
+1 3 7
+2 1 6
+
+

@@ -162,12 +162,12 @@ int main() {
         
         //convert nodeID to node list num in network
         int node_link1, node_link2;
-        for (int i = 0; i < V; i++){
-            if(network->nodes[i]->nodeID==ID1){
-                node_link1 = i;
+        for (int k = 0; k < V; k++){
+            if(network->nodes[k]->nodeID==ID1){
+                node_link1 = k;
             }
-            if(network->nodes[i]->nodeID==ID2){
-                node_link2 = i;
+            if(network->nodes[k]->nodeID==ID2){
+                node_link2 = k;
             }
         }
         
@@ -188,14 +188,14 @@ int main() {
         //and calc remain capacity
         int startNode;
         int endNode;
-        for (int i = 0; i < V; i++){
-            if(network->nodes[i]->nodeID==startNodeID){
-                startNode = i;
+        for (int k = 0; k < V; k++){
+            if(network->nodes[k]->nodeID==startNodeID){
+                startNode = k;
             }
-            if(network->nodes[i]->nodeID==endNodeID){
-                endNode = i;
+            if(network->nodes[k]->nodeID==endNodeID){
+                endNode = k;
             }
-            network->nodes[i]->capacity_remained = (network->nodes[i]->weight)*timeslot - network->nodes[i]->now_weight;
+            network->nodes[k]->capacity_remained = (network->nodes[k]->weight)*timeslot - network->nodes[k]->now_weight;
         }
 
         // Run Dijkstra's algorithm
@@ -206,10 +206,19 @@ int main() {
     printf("\n");
 
     for (int k = 0; k < req;k++){
+        int pathid[path_end[k]];
         for (int i = 1; i <=path_end[k] ; i++) {
             printf("%d ", path[k][path_end[k]-i]);
+            pathid[i - 1] = path[k][path_end[k] - i];
         }
         printf("\n");
+        for (int i = 0; i < path_end[k];i++){
+            path[k][i] = pathid[i];
+        }
+        for (int i = 0; i < path_end[k];i++){
+            printf("%d ", path[k][i]);
+        }
+            
     }
 
 
