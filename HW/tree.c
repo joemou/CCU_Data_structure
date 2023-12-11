@@ -78,8 +78,8 @@ void ExamineTreeload(struct Node* root, int **load,int time) {
 }
 
 int main() {
-    int nodes = 4;
-    int id[]={10,8,15,20};
+    int nodes = 2;
+    int id[]={0,2};
     int time = 7;
 
 
@@ -89,7 +89,7 @@ int main() {
     }
 
     // Build the tree
-    struct Node *root = buildTree(1, nodes, 1);
+    struct Node *root = buildTree(1, nodes, 0);
 
     // Display the tree
     displayTree(root,id,time);

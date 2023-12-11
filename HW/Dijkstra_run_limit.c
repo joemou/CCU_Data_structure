@@ -114,22 +114,23 @@ void displayTree(struct TreeNode* root, int id[],int time) {
         if(root->left!=NULL&&root->right!=NULL){
             printf("%d %d %d %d ", id[root->left->front - 1], id[root->left->rear - 1], id[root->right->front - 1], id[root->right->rear - 1]);
         }
-        printf("%d",time-root->height);
+        printf("%d",time-root->height-1);
         printf("\n");
     }
 }
 
-int ExamineTreeload(struct Network* network, struct TreeNode* root, int time, int **temp, int **limit, int id[]) {
+void ExamineTreeload(struct Network* network, struct TreeNode* root, int time, int **temp, int **limit, int id[], int *flag) {
     if (root != NULL) {
         //check out of bound
         if(root->height>time-2){//-1 because initial entangle
-            return 1;
+            *flag = 0;
+            return;
         }
         if (root->left != NULL) {
-            ExamineTreeload(network, root->left,time,temp, limit, id);
+            ExamineTreeload(network, root->left,time,temp, limit, id, flag);
         }
         if (root->right != NULL) {
-            ExamineTreeload(network, root->right,time,temp, limit, id);
+            ExamineTreeload(network, root->right,time,temp, limit, id, flag);
         }
 
 
@@ -138,8 +139,9 @@ int ExamineTreeload(struct Network* network, struct TreeNode* root, int time, in
             //for left value
             if(network->nodes[i]->nodeID==id[root->front-1]){
                 //root->height mean put on the top no move down
-                printf("(%d %d %d)", root->height, i, id[root->front - 1]);
+                /*printf("(%d %d %d)", root->height, i, id[root->front - 1]);*/
                 temp[root->height][i] += 1;
+                /*
                 printf("\n");
                 for (int i = 0; i < time;i++){
                     for (int k = 0; k < V;k++){
@@ -148,6 +150,7 @@ int ExamineTreeload(struct Network* network, struct TreeNode* root, int time, in
                     }
                     printf("\n");
                 }
+                */
 
                 //deal the leaf
                 if(root->right==NULL&&root->left==NULL){
@@ -155,14 +158,16 @@ int ExamineTreeload(struct Network* network, struct TreeNode* root, int time, in
                 }
                 //out of limit
                 if(temp[root->height][i]>limit[root->height][i]){
-                    return 1;
+                    *flag = 0;
+                    return;
                 }
             }
             //for right value
             if(network->nodes[i]->nodeID==id[root->rear-1]){
                 //root->height mean put on the top no move down
-                printf("(%d %d %d)", root->height, i, id[root->front - 1]);
+                /*printf("(%d %d %d)", root->height, i, id[root->front - 1]);*/
                 temp[root->height][i] += 1;
+                /*
                 printf("\n");
                 for (int i = 0; i < time;i++){
                     for (int k = 0; k < V;k++){
@@ -171,20 +176,22 @@ int ExamineTreeload(struct Network* network, struct TreeNode* root, int time, in
                     }
                     printf("\n");
                 }
+                */
                 //deal the leaf
                 if(root->right==NULL&&root->left==NULL){
                     temp[root->height+1][i] += 1;
                 }  
                 //out of limit
                 if(temp[root->height][i]>limit[root->height][i]){
-                    return 1;
+                    *flag = 0;
+                    return;
                 }
             }
         }
  
 
     }
-    return 0;
+
 }
 
 // Function to find the vertex with the minimum distance value,
@@ -215,8 +222,64 @@ void printPath(struct Network* network, int parent[], int j, int index, int ans_
 }
 
 
+
+
+
+typedef struct AnsNode {
+    struct TreeNode* root;
+    int reqid;
+    int req_time;
+    int time;
+
+    struct AnsNode* next;
+} AnsNode;
+
+
+struct AnsNode* createAnsNode(struct TreeNode* root, int reqid, int req_time, int time) {
+    struct AnsNode* newNode = (AnsNode*)malloc(sizeof(AnsNode));
+    newNode->root = root;
+    newNode->reqid = reqid;
+    newNode->req_time = req_time;
+    newNode->time = time;
+
+    newNode->next = NULL;
+    return newNode;
+}
+
+// Function to insert a tree node at the end of the linked list
+// Function to insert a tree node at the end of the linked list
+void insertAnsNode(struct AnsNode** head, struct TreeNode* treeNode, int reqid, int req_time, int time) {
+    struct AnsNode* newNode = createAnsNode(treeNode, reqid, req_time, time);
+    newNode->next = NULL;
+
+    if (*head == NULL) {
+        *head = newNode;
+    } else {
+        struct AnsNode* current = *head;
+        while (current->next != NULL) {
+            current = current->next;
+        }
+        current->next = newNode;
+    }
+}
+
+
+void printans(struct AnsNode *head){
+    //display
+    while(head!=NULL){
+        printf("%d ", head->reqid);
+        for (int i = 0; i < path_end[head->req_time];i++){
+            printf("%d ", path[head->req_time][i]);
+        }
+        printf("\n");
+        displayTree(head->root, path[head->req_time], head->time);
+        head = head->next;
+    }
+}
+
+
 // Function to implement Dijkstra's algorithm to find minimum total path node weight
-void dijkstra(struct Network* network, int src, int dest, int time,int **load,int **limit, int req_time, int reqid){
+int dijkstra(struct Network* network, int src, int dest, int time,int **load,int **limit, int req_time, int reqid, struct AnsNode **head){
     int* totalWeight = (int*)malloc(V * sizeof(int)); // Array to store the minimum total path node weight from src to i
     int* parent = (int*)malloc(V * sizeof(int));      // Array to store the parent node in the shortest path from src to i
     int* sptSet = (int*)malloc(V * sizeof(int));       // Array to track the inclusion of vertices in the shortest path tree
@@ -263,9 +326,8 @@ void dijkstra(struct Network* network, int src, int dest, int time,int **load,in
     }
     
     for (int i = 0; i < path_end[req_time]; i++) {
-        printf("=%d=", path[req_time][i]);
+        //printf("=%d=", path[req_time][i]);
     }
-    printf("\n");
 
     //build tree(by path order 1,2,3,4,5,6)
     struct TreeNode *root = buildTree(1, path_end[req_time], 0);
@@ -276,47 +338,45 @@ void dijkstra(struct Network* network, int src, int dest, int time,int **load,in
     }
 
     for (int i = 0; i < time;i++){
-        for (int k = 0; k < V;k++){
+        for (int k = 0; k < V;k++){ 
             temp[i][k] = load[i][k];
-            printf("%d ", temp[i][k]);
         }
-        printf("\n");
     }
 
     // examie the id ans out of limit or not
     // patid order 0,1,2,3,4,5,6 which need to minus one to suit tree node order
-    flag = ExamineTreeload(network, root, time, temp, limit, path_id);
+    int flag = 1;
 
-    printf("[%d]",flag);
+    ExamineTreeload(network, root, time, temp, limit, path_id, &flag);
+
+
+
+    //printf("[%d]\n",flag);
     
     //if no prob
-    if(1){
-        printf("\n");
+    if (flag)
+    {   
         for (int i = 0; i < time;i++){
             for (int k = 0; k < V;k++){
                 load[i][k] = temp[i][k];
-                printf("%d ", load[i][k]);
             }
-            printf("\n");
         }
-        //display
-        printf("%d ", reqid);
-        for (int i = 0; i < path_end[req_time];i++){
-            printf("%d ", path[req_time][i]);
-        }
-        printf("\n");
-        displayTree(root, path_id, time);
-
+        insertAnsNode(head, root, reqid, req_time, time);
     }
 
-
-
-    // Free allocated memory
-    free(temp);
     free(totalWeight);
     free(parent);
     free(sptSet);
 
+
+    for (int i = 0; i < time; i++) {
+        free(temp[i]);
+    }
+    free(temp);
+
+
+
+    return flag;
 }
 
 
@@ -355,8 +415,9 @@ int main() {
             limit[i][k] = network->nodes[k]->weight;
         }
     }
-        
-    for (int i = 0; i < links;i++){
+    
+    for (int i = 0; i < links; i++)
+    {
         int uselessID, ID1, ID2;
         scanf("%d %d %d",&uselessID,&ID1,&ID2);
         
@@ -372,35 +433,46 @@ int main() {
         }
         addConnection(network, node_link1, node_link2, 1);
     }
-    
-    // Choose start and end points
+
+    int startNodeID[req], endNodeID[req];
+    int reqid[req];
+
     for (int i = 0; i < req;i++){
-        int startNodeID, endNodeID;
-        int reqid;
-        scanf("%d", &reqid);
-        scanf("%d", &startNodeID);
-        scanf("%d", &endNodeID);
+
+        scanf("%d", &reqid[i]);
+        scanf("%d", &startNodeID[i]);
+        scanf("%d", &endNodeID[i]);
+
+    }
+
+    struct AnsNode *head=NULL;
+    int ansnum = 0;
+
+    for (int i = 0; i < req;i++){
 
         //convert nodeID to node list num in network
         //and calc remain capacity
         int startNode=-1;
         int endNode=-1;
         for (int k = 0; k < V; k++){
-            if(network->nodes[k]->nodeID==startNodeID){
+            if(network->nodes[k]->nodeID==startNodeID[i]){
                 startNode = k;
             }
-            if(network->nodes[k]->nodeID==endNodeID){
+            if(network->nodes[k]->nodeID==endNodeID[i]){
                 endNode = k;
             }
             network->nodes[k]->capacity_remained = (network->nodes[k]->weight)*time - network->nodes[k]->now_weight;
         }
+        
         // Run Dijkstra's algorithm
-        dijkstra(network, startNode, endNode, time, load, limit, i, reqid);
-        if(0){
-            break;
+        if(dijkstra(network, startNode, endNode, time, load, limit, i, reqid[i], &head)){
+            ansnum++;
         }
-              
     }
+
+    printf("%d\n", ansnum);
+
+    printans(head);
 
     return 0;
 }

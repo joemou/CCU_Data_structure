@@ -95,12 +95,15 @@ int dequeue(struct Queue* queue) {
 void printPath(struct Network* network, int parent[], int j, int index, int ans_num) {
     if (parent[j] == -1) {
         index += 1;
+        printf(" start-> %d(%d)", network->nodes[j]->nodeID, index);
         path_end[ans_num] = index;
+        printf("[%d]", ans_num);
         return;
     }
     index += 1;
     printPath(network, parent, parent[j], index, ans_num);
     path[ans_num][index - 1] = network->nodes[j]->nodeID;
+    printf(" -> %d(%d)", network->nodes[j]->nodeID, index);
 }
 
 // Function to perform BFS and find the minimum total path node weight
@@ -205,6 +208,7 @@ int main() {
         bfs(network, startNode, endNode, i);
     }
 
+    printf("\n\n\n");
     printf("\n");
 
     for (int k = 0; k < req; k++) {

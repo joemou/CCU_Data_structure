@@ -22,6 +22,114 @@ struct Network {
     int** connections;    // 2D array to represent connections between nodes
 };
 
+// Structure to represent a queue for BFS
+struct Queue {
+    int front, rear;
+    int* array;
+};
+
+// Function to initialize a queue for BFS
+struct Queue* createQueue(int capacity) {
+    struct Queue* queue = (struct Queue*)malloc(sizeof(struct Queue));
+    queue->front = -1;
+    queue->rear = -1;
+    queue->array = (int*)malloc(capacity * sizeof(int));
+    return queue;
+}
+
+// Function to check if the queue is empty
+int isEmpty(struct Queue* queue) {
+    return queue->front == -1;
+}
+
+// Function to enqueue an element to the queue
+void enqueue(struct Queue* queue, int item) {
+    if (isEmpty(queue))
+        queue->front = 0;
+    queue->rear++;
+    queue->array[queue->rear] = item;
+}
+
+// Function to dequeue an element from the queue
+int dequeue(struct Queue* queue) {
+    int item = queue->array[queue->front];
+    queue->front++;
+    if (queue->front > queue->rear)
+        queue->front = queue->rear = -1;
+    return item;
+}
+// Function to print the path using BFS
+void printPath(struct Network* network, int parent[], int j, int index, int ans_num) {
+    if (parent[j] == -1) {
+        index += 1;
+        path[ans_num][index - 1] = network->nodes[j]->nodeID;
+        path_end[ans_num] = index;
+        return;
+    }
+    index += 1;
+    printPath(network, parent, parent[j], index, ans_num);
+    path[ans_num][index - 1] = network->nodes[j]->nodeID;
+
+}
+
+void reverseArray(int arr[], int size) {
+    int start = 0;
+    int end = size - 1;
+
+    while (start < end) {
+        // Swap elements at start and end
+        int temp = arr[start];
+        arr[start] = arr[end];
+        arr[end] = temp;
+
+        // Move the pointers towards the center
+        start++;
+        end--;
+    }
+}
+
+// Function to perform BFS and find the minimum total path node weight
+void bfs(struct Network* network, int src, int dest, int ans_num) {
+    int* visited = (int*)malloc(network->numNodes * sizeof(int));
+    int* parent = (int*)malloc(network->numNodes * sizeof(int));
+    int path_index = 0;
+
+    for (int i = 0; i < network->numNodes; i++) {
+        visited[i] = 0;
+        parent[i] = -1;
+    }
+
+    struct Queue* queue = createQueue(network->numNodes);
+
+    visited[src] = 1;
+    enqueue(queue, src);
+
+    while (!isEmpty(queue)) {
+        int u = dequeue(queue);
+
+        for (int v = 0; v < network->numNodes; v++) {
+            if (!visited[v] && network->connections[u][v]) {
+                visited[v] = 1;
+                parent[v] = u;
+                enqueue(queue, v);
+            }
+        }
+    }
+
+    // Print the results
+    printPath(network, parent, dest, path_index, ans_num);
+
+    reverseArray(path[ans_num], path_end[ans_num]);
+
+    // Free allocated memory
+    free(visited);
+    free(parent);
+    free(queue->array);
+    free(queue);
+}
+
+
+
 // Function to create a new node with the given ID and weight
 struct Node* createNode(int nodeID, int weight) {
     struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
@@ -124,6 +232,7 @@ void ExamineTreeload(struct Network* network, struct TreeNode* root, int time, i
         //check out of bound
         if(root->height>time-2){//-1 because initial entangle
             *flag = 0;
+           
             return;
         }
         if (root->left != NULL) {
@@ -159,6 +268,7 @@ void ExamineTreeload(struct Network* network, struct TreeNode* root, int time, i
                 //out of limit
                 if(temp[root->height][i]>limit[root->height][i]){
                     *flag = 0;
+                   
                     return;
                 }
             }
@@ -194,84 +304,68 @@ void ExamineTreeload(struct Network* network, struct TreeNode* root, int time, i
 
 }
 
-// Function to find the vertex with the minimum distance value,
-// from the set of vertices not yet included in the shortest path tree
-int minDistance(int dist[], int sptSet[]) {
-    int min = INT_MAX, min_index=-1;
 
-    for (int v = 0; v < V; v++){
-        if (sptSet[v] == 0 && dist[v] <= min){
-            min = dist[v], min_index = v;
+
+typedef struct AnsNode {
+    struct TreeNode* root;
+    int reqid;
+    int req_time;
+    int time;
+
+    struct AnsNode* next;
+} AnsNode;
+
+
+struct AnsNode* createAnsNode(struct TreeNode* root, int reqid, int req_time, int time) {
+    struct AnsNode* newNode = (AnsNode*)malloc(sizeof(AnsNode));
+    newNode->root = root;
+    newNode->reqid = reqid;
+    newNode->req_time = req_time;
+    newNode->time = time;
+
+    newNode->next = NULL;
+    return newNode;
+}
+
+// Function to insert a tree node at the end of the linked list
+// Function to insert a tree node at the end of the linked list
+void insertAnsNode(struct AnsNode** head, struct TreeNode* treeNode, int reqid, int req_time, int time) {
+    struct AnsNode* newNode = createAnsNode(treeNode, reqid, req_time, time);
+    newNode->next = NULL;
+
+    if (*head == NULL) {
+        *head = newNode;
+    } else {
+        struct AnsNode* current = *head;
+        while (current->next != NULL) {
+            current = current->next;
         }
+        current->next = newNode;
     }
-
-    return min_index;
 }
 
-void printPath(struct Network* network, int parent[], int j, int index, int ans_num) {
-    if (parent[j] == -1) {
-        index += 1;
-        path[ans_num][index-1] = network->nodes[j]->nodeID;
-        path_end[ans_num] = index;
-        return;
-    }
-    index += 1;
-    printPath(network, parent, parent[j], index, ans_num);
-    path[ans_num][index-1] = network->nodes[j]->nodeID;
 
+void printans(struct AnsNode *head){
+    //display
+    while(head!=NULL){
+        printf("%d ", head->reqid);
+        for (int i = 0; i < path_end[head->req_time];i++){
+            printf("%d ", path[head->req_time][i]);
+        }
+        printf("\n");
+        displayTree(head->root, path[head->req_time], head->time);
+        head = head->next;
+    }
 }
+
+// Function to perform BFS
+
 
 
 // Function to implement Dijkstra's algorithm to find minimum total path node weight
-int dijkstra(struct Network* network, int src, int dest, int time,int **load,int **limit, int req_time, int reqid){
-    int* totalWeight = (int*)malloc(V * sizeof(int)); // Array to store the minimum total path node weight from src to i
-    int* parent = (int*)malloc(V * sizeof(int));      // Array to store the parent node in the shortest path from src to i
-    int* sptSet = (int*)malloc(V * sizeof(int));       // Array to track the inclusion of vertices in the shortest path tree
-    int path_index = 0;
+int dijkstra(struct Network* network, int src, int dest, int time,int **load,int **limit, int req_time, int reqid, struct AnsNode **head){
 
-
-    // Initialize all total weights as INFINITE, parent array as -1, and sptS       et as 0
-    for (int i = 0; i < V; i++) {
-        totalWeight[i] = INT_MAX;
-        parent[i] = -1;
-        sptSet[i] = 0;
-    }
-
-    // Total weight from source to itself is always the weight of the source node
-    totalWeight[src] = network->nodes[src]->weight;
-
-    // Find minimum total path node weight for all vertices
-    for (int count = 0; count < V - 1; count++) {
-        // Pick the minimum total path node weight vertex from the set of vertices not yet processed
-        int u = minDistance(totalWeight, sptSet);
-        // Mark the picked vertex as processed
-        sptSet[u] = 1;
-
-        // Update totalWeight value of the adjacent vertices of the picked vertex
-        for (int v = 0; v < V; v++) {
-            //if the node no visited, connected, with weight and weight larger than new path, update 
-            if (!sptSet[v] && network->connections[u][v] && totalWeight[u] != INT_MAX &&totalWeight[u] + network->nodes[v]->weight < totalWeight[v]) {
-                totalWeight[v] = totalWeight[u] + network->nodes[v]->weight;
-                parent[v] = u;
-            }
-        }
-    }
-    printPath(network, parent, dest, path_index, req_time);
-
-
-    //invert pat
-
-    int path_id[path_end[req_time]];
-    for (int i = 1; i <= path_end[req_time]; i++) {
-        path_id[i - 1] = path[req_time][path_end[req_time] - i];
-    }
-    for (int i = 0; i < path_end[req_time]; i++) {
-        path[req_time][i] = path_id[i];
-    }
-    
-    for (int i = 0; i < path_end[req_time]; i++) {
-        //printf("=%d=", path[req_time][i]);
-    }
+    bfs(network, src, dest, req_time);
 
     //build tree(by path order 1,2,3,4,5,6)
     struct TreeNode *root = buildTree(1, path_end[req_time], 0);
@@ -282,7 +376,7 @@ int dijkstra(struct Network* network, int src, int dest, int time,int **load,int
     }
 
     for (int i = 0; i < time;i++){
-        for (int k = 0; k < V;k++){
+        for (int k = 0; k < V;k++){ 
             temp[i][k] = load[i][k];
         }
     }
@@ -291,7 +385,7 @@ int dijkstra(struct Network* network, int src, int dest, int time,int **load,int
     // patid order 0,1,2,3,4,5,6 which need to minus one to suit tree node order
     int flag = 1;
 
-    ExamineTreeload(network, root, time, temp, limit, path_id, &flag);
+    ExamineTreeload(network, root, time, temp, limit, path[req_time], &flag);
 
 
 
@@ -305,26 +399,21 @@ int dijkstra(struct Network* network, int src, int dest, int time,int **load,int
                 load[i][k] = temp[i][k];
             }
         }
-
-        //display
-        printf("%d ", reqid);
-        for (int i = 0; i < path_end[req_time];i++){
-            printf("%d ", path[req_time][i]);
-        }
-        printf("\n");
-        displayTree(root, path[req_time], time);
+        insertAnsNode(head, root, reqid, req_time, time);
     }
 
+ 
 
-    // Free allocated memory
+
+    for (int i = 0; i < time; i++) {
+        free(temp[i]);
+    }
     free(temp);
-    free(totalWeight);
-    free(parent);
-    free(sptSet);
+
+
 
     return flag;
 }
-
 
 
 int main() {
@@ -341,16 +430,16 @@ int main() {
         network->nodes[i] = createNode(id, weight);
     }
 
-        //create matrix store weight and limit
-        int **load = (int **)malloc(time * sizeof(int *));
-        for (int i = 0; i < time; i++) {
-            load[i] = (int *)malloc(nodes * sizeof(int));
-        }
+    //create matrix store weight and limit
+    int **load = (int **)malloc(time * sizeof(int *));
+    for (int i = 0; i < time; i++) {
+        load[i] = (int *)malloc(nodes * sizeof(int));
+    }
 
-        int **limit = (int **)malloc(time * sizeof(int *));
-        for (int i = 0; i < time; i++) {
-            limit[i] = (int *)malloc(nodes * sizeof(int));
-        }
+    int **limit = (int **)malloc(time * sizeof(int *));
+    for (int i = 0; i < time; i++) {
+        limit[i] = (int *)malloc(nodes * sizeof(int));
+    }
 
     for(int i=0;i<time;i++){
         for (int k = 0; k < nodes;k++){
@@ -381,7 +470,6 @@ int main() {
         addConnection(network, node_link1, node_link2, 1);
     }
 
-    int ac_num=0;
     int startNodeID[req], endNodeID[req];
     int reqid[req];
 
@@ -393,6 +481,8 @@ int main() {
 
     }
 
+    struct AnsNode *head=NULL;
+    int ansnum = 0;
 
     for (int i = 0; i < req;i++){
 
@@ -411,8 +501,15 @@ int main() {
         }
         
         // Run Dijkstra's algorithm
-        dijkstra(network, startNode, endNode, time, load, limit, i, reqid[i]);
+        if(dijkstra(network, startNode, endNode, time, load, limit, i, reqid[i], &head)){
+            ansnum++;
+        }
     }
+
+    printf("%d\n", ansnum);
+
+
+    printans(head);
 
     return 0;
 }

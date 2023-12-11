@@ -293,8 +293,6 @@ int dijkstra(struct Network* network, int src, int dest, int time,int **load,int
 
     ExamineTreeload(network, root, time, temp, limit, path_id, &flag);
 
-
-
     //printf("[%d]\n",flag);
     
     //if no prob
@@ -312,9 +310,8 @@ int dijkstra(struct Network* network, int src, int dest, int time,int **load,int
             printf("%d ", path[req_time][i]);
         }
         printf("\n");
-        displayTree(root, path[req_time], time);
+        displayTree(root, path_id, time);
     }
-
 
     // Free allocated memory
     free(temp);
@@ -324,7 +321,6 @@ int dijkstra(struct Network* network, int src, int dest, int time,int **load,int
 
     return flag;
 }
-
 
 
 int main() {
@@ -380,21 +376,14 @@ int main() {
         }
         addConnection(network, node_link1, node_link2, 1);
     }
-
-    int ac_num=0;
     int startNodeID[req], endNodeID[req];
     int reqid[req];
-
+    // Choose start and end points
     for (int i = 0; i < req;i++){
 
         scanf("%d", &reqid[i]);
         scanf("%d", &startNodeID[i]);
         scanf("%d", &endNodeID[i]);
-
-    }
-
-
-    for (int i = 0; i < req;i++){
 
         //convert nodeID to node list num in network
         //and calc remain capacity
@@ -411,7 +400,8 @@ int main() {
         }
         
         // Run Dijkstra's algorithm
-        dijkstra(network, startNode, endNode, time, load, limit, i, reqid[i]);
+        int flag = dijkstra(network, startNode, endNode, time, load, limit, i, reqid);
+              
     }
 
     return 0;
