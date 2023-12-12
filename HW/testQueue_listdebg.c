@@ -7,19 +7,22 @@ int path[10000][10000];
 int path_end[10000];
 int flag;
 
+struct Edge {
+    int dest;
+    int weight;
+    struct Edge* next;
+};
+
 // Structure to represent a node in the network
 struct Node {
     int nodeID; // Node identifier
     int weight; // Weight limit of the node
-    int now_weight; //The weight the node have
-    int capacity_remained; //diff between limit and now_wewight
+    struct Edge* neighbors;
 };
 
-// Structure to represent a network
 struct Network {
-    int numNodes;         // Number of nodes in the network
-    struct Node** nodes;  // Array of pointers to nodes
-    int** connections;    // 2D array to represent connections between nodes
+    int numNodes;
+    struct Node** nodes;
 };
 
 // Structure to represent a queue for BFS
@@ -27,6 +30,41 @@ struct Queue {
     int front, rear;
     int* array;
 };
+
+
+
+// Function to create a new node with the given ID and weight
+struct Node* createNode(int nodeID, int weight) {
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    newNode->nodeID = nodeID;
+    newNode->weight = weight;
+    newNode->neighbors = NULL;
+    return newNode;
+}
+
+// Function to create a network with a given number of nodes
+struct Network* createNetwork(int numNodes) {
+    struct Network* network = (struct Network*)malloc(sizeof(struct Network));
+    network->numNodes = numNodes;
+
+    network->nodes = (struct Node**)malloc(numNodes * sizeof(struct Node*));
+    for (int i = 0; i < numNodes; ++i) {
+        network->nodes[i] = createNode(-1, 0); // Initialize with invalid ID
+    }
+
+    return network;
+}
+
+int findNodeIndex(struct Network* network, int nodeID) {
+    for (int i = 0; i < network->numNodes; ++i) {
+        if (network->nodes[i]->nodeID == nodeID) {
+            return i;
+        }
+    }
+    // Return -1 if the node with the given ID is not found
+    return -1;
+}
+
 
 // Function to initialize a queue for BFS
 struct Queue* createQueue(int capacity) {
@@ -36,12 +74,10 @@ struct Queue* createQueue(int capacity) {
     queue->array = (int*)malloc(capacity * sizeof(int));
     return queue;
 }
-
 // Function to check if the queue is empty
 int isEmpty(struct Queue* queue) {
     return queue->front == -1;
 }
-
 // Function to enqueue an element to the queue
 void enqueue(struct Queue* queue, int item) {
     if (isEmpty(queue))
@@ -49,6 +85,21 @@ void enqueue(struct Queue* queue, int item) {
     queue->rear++;
     queue->array[queue->rear] = item;
 }
+
+// Function to add an edge to the adjacency list
+void addEdge(struct Node* src, int dest, int weight) {
+    struct Edge* newEdge = (struct Edge*)malloc(sizeof(struct Edge));
+    newEdge->dest = dest;
+    newEdge->weight = weight;
+    newEdge->next = src->neighbors;
+    src->neighbors = newEdge;
+}
+
+
+
+
+
+
 
 // Function to dequeue an element from the queue
 int dequeue(struct Queue* queue) {
@@ -107,14 +158,19 @@ void bfs(struct Network* network, int src, int dest, int ans_num) {
     while (!isEmpty(queue)) {
         int u = dequeue(queue);
 
-        for (int v = 0; v < network->numNodes; v++) {
-            if (!visited[v] && network->connections[u][v]) {
+        struct Edge* current = network->nodes[u]->neighbors;
+        while (current != NULL) {
+            int v = current->dest;
+            if (!visited[v]) {
                 visited[v] = 1;
                 parent[v] = u;
                 enqueue(queue, v);
             }
+            
+            current = current->next;
         }
     }
+
 
     // Print the results
     printPath(network, parent, dest, path_index, ans_num);
@@ -130,36 +186,12 @@ void bfs(struct Network* network, int src, int dest, int ans_num) {
 
 
 
-// Function to create a new node with the given ID and weight
-struct Node* createNode(int nodeID, int weight) {
-    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
-    newNode->nodeID = nodeID;
-    newNode->weight = weight;
-    newNode->now_weight = 0;
-    newNode->capacity_remained = 0;//cpacity remained in t sec
-    return newNode;
-}
-
-// Function to create a network with a given number of nodes
-struct Network* createNetwork(int numNodes) {
-    struct Network* network = (struct Network*)malloc(sizeof(struct Network));
-    network->numNodes = numNodes;
-
-    // Allocate memory for nodes and connections
-    network->nodes = (struct Node**)malloc(numNodes * sizeof(struct Node*));
-    network->connections = (int**)malloc(numNodes * sizeof(int*));
-    for (int i = 0; i < numNodes; ++i) {
-        network->nodes[i] = NULL;
-        network->connections[i] = (int*)calloc(numNodes, sizeof(int));
-    }
-
-    return network;
-}
 
 // Function to add a connection between two nodes with a given weight
 void addConnection(struct Network* network, int node1, int node2, int weight) {
-    network->connections[node1][node2] = weight;
-    network->connections[node2][node1] = weight;
+
+    addEdge(network->nodes[node1], node2, weight);
+    addEdge(network->nodes[node2], node1, weight);
 }
 
 
@@ -222,7 +254,7 @@ void displayTree(struct TreeNode* root, int id[],int time) {
         if(root->left!=NULL&&root->right!=NULL){
             printf("%d %d %d %d ", id[root->left->front - 1], id[root->left->rear - 1], id[root->right->front - 1], id[root->right->rear - 1]);
         }
-        printf("%d",time-root->height-1);
+        printf("%d",time-root->height);
         printf("\n");
     }
 }
@@ -230,9 +262,8 @@ void displayTree(struct TreeNode* root, int id[],int time) {
 void ExamineTreeload(struct Network* network, struct TreeNode* root, int time, int **temp, int **limit, int id[], int *flag) {
     if (root != NULL) {
         //check out of bound
-        if(root->height>time-2){//-1 because initial entangle
+        if(time-root->height>time){//-1 because initial entangle
             *flag = 0;
-           
             return;
         }
         if (root->left != NULL) {
@@ -266,7 +297,7 @@ void ExamineTreeload(struct Network* network, struct TreeNode* root, int time, i
                     temp[root->height+1][i] += 1;
                 }
                 //out of limit
-                if(temp[root->height][i]>limit[root->height][i]){
+                if(temp[root->height][i]+1>limit[root->height][i]){
                     *flag = 0;
                    
                     return;
@@ -292,7 +323,7 @@ void ExamineTreeload(struct Network* network, struct TreeNode* root, int time, i
                     temp[root->height+1][i] += 1;
                 }  
                 //out of limit
-                if(temp[root->height][i]>limit[root->height][i]){
+                if(temp[root->height][i]+1>limit[root->height][i]){
                     *flag = 0;
                     return;
                 }
@@ -303,11 +334,6 @@ void ExamineTreeload(struct Network* network, struct TreeNode* root, int time, i
     }
 
 }
-
-
-
-
-
 
 
 
@@ -433,18 +459,20 @@ int main() {
         int id, weight;
         scanf("%d %d",&id,&weight);
         network->nodes[i] = createNode(id, weight);
+
+    
     }
 
-        //create matrix store weight and limit
-        int **load = (int **)malloc(time * sizeof(int *));
-        for (int i = 0; i < time; i++) {
-            load[i] = (int *)malloc(nodes * sizeof(int));
-        }
+    //create matrix store weight and limit
+    int **load = (int **)malloc(time * sizeof(int *));
+    for (int i = 0; i < time; i++) {
+        load[i] = (int *)malloc(nodes * sizeof(int));
+    }
 
-        int **limit = (int **)malloc(time * sizeof(int *));
-        for (int i = 0; i < time; i++) {
-            limit[i] = (int *)malloc(nodes * sizeof(int));
-        }
+    int **limit = (int **)malloc(time * sizeof(int *));
+    for (int i = 0; i < time; i++) {
+        limit[i] = (int *)malloc(nodes * sizeof(int));
+    }
 
     for(int i=0;i<time;i++){
         for (int k = 0; k < nodes;k++){
@@ -456,24 +484,21 @@ int main() {
             limit[i][k] = network->nodes[k]->weight;
         }
     }
+
     
+
     for (int i = 0; i < links; i++)
     {
         int uselessID, ID1, ID2;
         scanf("%d %d %d",&uselessID,&ID1,&ID2);
         
         //convert nodeID to node list num in network
-        int node_link1=-1, node_link2=-1;
-        for (int k = 0; k < V; k++){
-            if(network->nodes[k]->nodeID==ID1){
-                node_link1 = k;
-            }
-            if(network->nodes[k]->nodeID==ID2){
-                node_link2 = k;
-            }
-        }
+        int node_link1 = findNodeIndex(network, ID1);
+        int node_link2 = findNodeIndex(network, ID2);
         addConnection(network, node_link1, node_link2, 1);
     }
+
+    
 
     int startNodeID[req], endNodeID[req];
     int reqid[req];
@@ -483,32 +508,40 @@ int main() {
         scanf("%d", &reqid[i]);
         scanf("%d", &startNodeID[i]);
         scanf("%d", &endNodeID[i]);
-
     }
 
     struct AnsNode *head=NULL;
-    int ansnum = 0;
+    int ansnum = 0;     
 
     for (int i = 0; i < req;i++){
 
         //convert nodeID to node list num in network
         //and calc remain capacity
-        int startNode=-1;
-        int endNode=-1;
-        for (int k = 0; k < V; k++){
-            if(network->nodes[k]->nodeID==startNodeID[i]){
-                startNode = k;
-            }
-            if(network->nodes[k]->nodeID==endNodeID[i]){
-                endNode = k;
-            }
-            network->nodes[k]->capacity_remained = (network->nodes[k]->weight)*time - network->nodes[k]->now_weight;
-        }
+        int startNode=findNodeIndex(network, startNodeID[i]);
+        int endNode=findNodeIndex(network, endNodeID[i]);
         
         // Run Dijkstra's algorithm
         if(dijkstra(network, startNode, endNode, time, load, limit, i, reqid[i], &head)){
+            printf("%d\n", ansnum);
+            for (int i = 0; i < time;i++){
+                for (int k = 0; k < V;k++){
+                        
+                    printf("%d ", load[i][k]);
+                }
+                printf("\n");
+            }
+            printf("=====\n");
+            for (int i = 0; i < time;i++){
+                for (int k = 0; k < V;k++){
+                        
+                    printf("%d ", limit[i][k]);
+                }
+                printf("\n");
+            }
+            printf("\n\n\n\n");
             ansnum++;
         }
+
     }
 
     printf("%d\n", ansnum);

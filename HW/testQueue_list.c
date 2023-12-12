@@ -254,7 +254,7 @@ void displayTree(struct TreeNode* root, int id[],int time) {
         if(root->left!=NULL&&root->right!=NULL){
             printf("%d %d %d %d ", id[root->left->front - 1], id[root->left->rear - 1], id[root->right->front - 1], id[root->right->rear - 1]);
         }
-        printf("%d",time-root->height-1);
+        printf("%d",time-root->height);
         printf("\n");
     }
 }
@@ -262,9 +262,8 @@ void displayTree(struct TreeNode* root, int id[],int time) {
 void ExamineTreeload(struct Network* network, struct TreeNode* root, int time, int **temp, int **limit, int id[], int *flag) {
     if (root != NULL) {
         //check out of bound
-        if(root->height>time-2){//-1 because initial entangle
+        if(time-root->height>time){//-1 because initial entangle
             *flag = 0;
-           
             return;
         }
         if (root->left != NULL) {
@@ -279,52 +278,26 @@ void ExamineTreeload(struct Network* network, struct TreeNode* root, int time, i
         for (int i = 0; i < V;i++){
             //for left value
             if(network->nodes[i]->nodeID==id[root->front-1]){
-                //root->height mean put on the top no move down
-                /*printf("(%d %d %d)", root->height, i, id[root->front - 1]);*/
                 temp[root->height][i] += 1;
-                /*
-                printf("\n");
-                for (int i = 0; i < time;i++){
-                    for (int k = 0; k < V;k++){
-                        
-                        printf("%d ", temp[i][k]);
-                    }
-                    printf("\n");
-                }
-                */
-
                 //deal the leaf
                 if(root->right==NULL&&root->left==NULL){
                     temp[root->height+1][i] += 1;
                 }
                 //out of limit
-                if(temp[root->height][i]>limit[root->height][i]){
+                if(temp[root->height][i]>=limit[root->height][i]){
                     *flag = 0;
-                   
                     return;
                 }
             }
             //for right value
             if(network->nodes[i]->nodeID==id[root->rear-1]){
-                //root->height mean put on the top no move down
-                /*printf("(%d %d %d)", root->height, i, id[root->front - 1]);*/
                 temp[root->height][i] += 1;
-                /*
-                printf("\n");
-                for (int i = 0; i < time;i++){
-                    for (int k = 0; k < V;k++){
-                        
-                        printf("%d ", temp[i][k]);
-                    }
-                    printf("\n");
-                }
-                */
                 //deal the leaf
                 if(root->right==NULL&&root->left==NULL){
                     temp[root->height+1][i] += 1;
                 }  
                 //out of limit
-                if(temp[root->height][i]>limit[root->height][i]){
+                if(temp[root->height][i]>=limit[root->height][i]){
                     *flag = 0;
                     return;
                 }
@@ -525,6 +498,7 @@ int main() {
         if(dijkstra(network, startNode, endNode, time, load, limit, i, reqid[i], &head)){
             ansnum++;
         }
+
     }
 
     printf("%d\n", ansnum);
