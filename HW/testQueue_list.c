@@ -140,7 +140,7 @@ void reverseArray(int arr[], int size) {
 }
 
 // Function to perform BFS and find the minimum total path node weight
-void bfs(struct Network* network, int src, int dest, int ans_num) {
+int bfs(struct Network* network, int src, int dest, int ans_num) {
     int* visited = (int*)malloc(network->numNodes * sizeof(int));
     int* parent = (int*)malloc(network->numNodes * sizeof(int));
     int path_index = 0;
@@ -170,18 +170,21 @@ void bfs(struct Network* network, int src, int dest, int ans_num) {
             current = current->next;
         }
     }
+    if (parent[dest] == -1) {
+        return 0;
+    } else {
+        // Path found, print the results and free memory
+        printPath(network, parent, dest, path_index, ans_num);
+        reverseArray(path[ans_num], path_end[ans_num]);
+    }
 
-
-    // Print the results
-    printPath(network, parent, dest, path_index, ans_num);
-
-    reverseArray(path[ans_num], path_end[ans_num]);
 
     // Free allocated memory
     free(visited);
     free(parent);
     free(queue->array);
     free(queue);
+    return 1;
 }
 
 
@@ -262,7 +265,7 @@ void displayTree(struct TreeNode* root, int id[],int time) {
 void ExamineTreeload(struct Network* network, struct TreeNode* root, int time, int **temp, int **limit, int id[], int *flag) {
     if (root != NULL) {
         //check out of bound
-        if(time-root->height>time){//-1 because initial entangle
+        if(root->height>time-2){//-1 because initial entangle
             *flag = 0;
             return;
         }
@@ -283,11 +286,6 @@ void ExamineTreeload(struct Network* network, struct TreeNode* root, int time, i
                 if(root->right==NULL&&root->left==NULL){
                     temp[root->height+1][i] += 1;
                 }
-                //out of limit
-                if(temp[root->height][i]>=limit[root->height][i]){
-                    *flag = 0;
-                    return;
-                }
             }
             //for right value
             if(network->nodes[i]->nodeID==id[root->rear-1]){
@@ -295,11 +293,6 @@ void ExamineTreeload(struct Network* network, struct TreeNode* root, int time, i
                 //deal the leaf
                 if(root->right==NULL&&root->left==NULL){
                     temp[root->height+1][i] += 1;
-                }  
-                //out of limit
-                if(temp[root->height][i]>=limit[root->height][i]){
-                    *flag = 0;
-                    return;
                 }
             }
         }
@@ -332,7 +325,6 @@ struct AnsNode* createAnsNode(struct TreeNode* root, int reqid, int req_time, in
     return newNode;
 }
 
-// Function to insert a tree node at the end of the linked list
 // Function to insert a tree node at the end of the linked list
 void insertAnsNode(struct AnsNode** head, struct TreeNode* treeNode, int reqid, int req_time, int time) {
     struct AnsNode* newNode = createAnsNode(treeNode, reqid, req_time, time);
@@ -370,7 +362,9 @@ void printans(struct AnsNode *head){
 // Function to implement Dijkstra's algorithm to find minimum total path node weight
 int dijkstra(struct Network* network, int src, int dest, int time,int **load,int **limit, int req_time, int reqid, struct AnsNode **head){
 
-    bfs(network, src, dest, req_time);
+    if(bfs(network, src, dest, req_time)==0){
+        return 0;
+    }
 
     //build tree(by path order 1,2,3,4,5,6)
     struct TreeNode *root = buildTree(1, path_end[req_time], 0);
@@ -392,9 +386,14 @@ int dijkstra(struct Network* network, int src, int dest, int time,int **load,int
 
     ExamineTreeload(network, root, time, temp, limit, path[req_time], &flag);
 
-
-
-    //printf("[%d]\n",flag);
+    //examine overload
+    for (int i = 0; i < time;i++){
+        for (int k = 0; k < V;k++){ 
+            if(temp[i][k] > limit[i][k]){
+                flag = 0;
+            }
+        }
+    }
     
     //if no prob
     if (flag)
