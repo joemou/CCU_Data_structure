@@ -504,6 +504,9 @@ int main() {
         if(dijkstra(network, startNode, endNode, time, load, limit, i, reqid[i], &head)){
             ansnum++;
         }
+        if(ansnum==2){
+            break;
+        }
     }
 
     printf("%d\n", ansnum);

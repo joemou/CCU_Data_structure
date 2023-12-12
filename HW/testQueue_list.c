@@ -2,82 +2,71 @@
 #include <stdlib.h>
 #include <limits.h>
 
-// Define the structure for a neighbor in the adjacency list
-struct Neighbor {
-    int nodeID; // ID of the neighboring node
-    int weight; // Weight of the connection
-    struct Neighbor* next; // Pointer to the next neighbor
+int V;
+int path[10000][10000];
+int path_end[10000];
+int flag;
+
+struct Edge {
+    int dest;
+    int weight;
+    struct Edge* next;
 };
 
-// Modify the Node structure to include a list of neighbors
+// Structure to represent a node in the network
 struct Node {
     int nodeID; // Node identifier
     int weight; // Weight limit of the node
-    int now_weight; // The weight the node has
-    int capacity_remained; // Difference between limit and now_weight
-    
-    // Linked list to store neighbors
-    struct Neighbor* neighbors;
+    struct Edge* neighbors;
 };
 
-// Modify the Network structure to use an adjacency list
 struct Network {
-    int numNodes; // Number of nodes in the network
-    struct Node* nodes; // Array of nodes
+    int numNodes;
+    struct Node** nodes;
 };
 
-// Function to add a connection between two nodes with a given weight
-void addConnection(struct Network* network, int node1, int node2, int weight) {
-    // Create a new neighbor for node1
-    struct Neighbor* newNeighbor1 = (struct Neighbor*)malloc(sizeof(struct Neighbor));
-    newNeighbor1->nodeID = node2;
-    newNeighbor1->weight = weight;
-    newNeighbor1->next = network->nodes[node1].neighbors;
-    network->nodes[node1].neighbors = newNeighbor1;
-
-    // Create a new neighbor for node2
-    struct Neighbor* newNeighbor2 = (struct Neighbor*)malloc(sizeof(struct Neighbor));
-    newNeighbor2->nodeID = node1;
-    newNeighbor2->weight = weight;
-    newNeighbor2->next = network->nodes[node2].neighbors;
-    network->nodes[node2].neighbors = newNeighbor2;
-}
-
-// Function to initialize a network with a given number of nodes
-struct Network* createNetwork(int numNodes) {
-    struct Network* network = (struct Network*)malloc(sizeof(struct Network));
-    network->numNodes = numNodes;
-
-    // Allocate memory for nodes
-    network->nodes = (struct Node*)malloc(numNodes * sizeof(struct Node));
-
-    // Initialize nodes and their neighbors
-    for (int i = 0; i < numNodes; ++i) {
-        network->nodes[i].nodeID = i; // Assign unique IDs to nodes
-        network->nodes[i].weight = 0; // Initialize weight (you may want to modify this)
-        network->nodes[i].now_weight = 0; // Initialize now_weight
-        network->nodes[i].capacity_remained = 0; // Initialize capacity_remained
-        network->nodes[i].neighbors = NULL; // Initialize neighbors as an empty list
-    }
-
-    return network;
-}
-
-// ... (rest of the code remains unchanged)
-
-int V;
-
-// ... (rest of the code remains unchanged)
-
-
-// ... (rest of the code
-
-
+// Structure to represent a queue for BFS
 struct Queue {
     int front, rear;
     int* array;
 };
 
+
+
+// Function to create a new node with the given ID and weight
+struct Node* createNode(int nodeID, int weight) {
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    newNode->nodeID = nodeID;
+    newNode->weight = weight;
+    newNode->neighbors = NULL;
+    return newNode;
+}
+
+// Function to create a network with a given number of nodes
+struct Network* createNetwork(int numNodes) {
+    struct Network* network = (struct Network*)malloc(sizeof(struct Network));
+    network->numNodes = numNodes;
+
+    network->nodes = (struct Node**)malloc(numNodes * sizeof(struct Node*));
+    for (int i = 0; i < numNodes; ++i) {
+        network->nodes[i] = createNode(-1, 0); // Initialize with invalid ID
+    }
+
+    return network;
+}
+
+int findNodeIndex(struct Network* network, int nodeID) {
+    for (int i = 0; i < network->numNodes; ++i) {
+        if (network->nodes[i]->nodeID == nodeID) {
+            return i;
+        }
+    }
+    // Return -1 if the node with the given ID is not found
+    return -1;
+}
+
+
+// Function to initialize a queue for BFS
 struct Queue* createQueue(int capacity) {
     struct Queue* queue = (struct Queue*)malloc(sizeof(struct Queue));
     queue->front = -1;
@@ -85,11 +74,11 @@ struct Queue* createQueue(int capacity) {
     queue->array = (int*)malloc(capacity * sizeof(int));
     return queue;
 }
-
+// Function to check if the queue is empty
 int isEmpty(struct Queue* queue) {
     return queue->front == -1;
 }
-
+// Function to enqueue an element to the queue
 void enqueue(struct Queue* queue, int item) {
     if (isEmpty(queue))
         queue->front = 0;
@@ -97,6 +86,22 @@ void enqueue(struct Queue* queue, int item) {
     queue->array[queue->rear] = item;
 }
 
+// Function to add an edge to the adjacency list
+void addEdge(struct Node* src, int dest, int weight) {
+    struct Edge* newEdge = (struct Edge*)malloc(sizeof(struct Edge));
+    newEdge->dest = dest;
+    newEdge->weight = weight;
+    newEdge->next = src->neighbors;
+    src->neighbors = newEdge;
+}
+
+
+
+
+
+
+
+// Function to dequeue an element from the queue
 int dequeue(struct Queue* queue) {
     int item = queue->array[queue->front];
     queue->front++;
@@ -104,11 +109,7 @@ int dequeue(struct Queue* queue) {
         queue->front = queue->rear = -1;
     return item;
 }
-
-
-int path[10000][10000];
-int path_end[10000];
-
+// Function to print the path using BFS
 void printPath(struct Network* network, int parent[], int j, int index, int ans_num) {
     if (parent[j] == -1) {
         index += 1;
@@ -119,8 +120,26 @@ void printPath(struct Network* network, int parent[], int j, int index, int ans_
     index += 1;
     printPath(network, parent, parent[j], index, ans_num);
     path[ans_num][index - 1] = network->nodes[j]->nodeID;
+
 }
 
+void reverseArray(int arr[], int size) {
+    int start = 0;
+    int end = size - 1;
+
+    while (start < end) {
+        // Swap elements at start and end
+        int temp = arr[start];
+        arr[start] = arr[end];
+        arr[end] = temp;
+
+        // Move the pointers towards the center
+        start++;
+        end--;
+    }
+}
+
+// Function to perform BFS and find the minimum total path node weight
 void bfs(struct Network* network, int src, int dest, int ans_num) {
     int* visited = (int*)malloc(network->numNodes * sizeof(int));
     int* parent = (int*)malloc(network->numNodes * sizeof(int));
@@ -139,79 +158,40 @@ void bfs(struct Network* network, int src, int dest, int ans_num) {
     while (!isEmpty(queue)) {
         int u = dequeue(queue);
 
-        // Traverse the linked list of edges for the current node
-        struct Edge* edge = network->nodes[u]->edges;
-        while (edge != NULL) {
-            int v = edge->destNodeID;
+        struct Edge* current = network->nodes[u]->neighbors;
+        while (current != NULL) {
+            int v = current->dest;
             if (!visited[v]) {
                 visited[v] = 1;
                 parent[v] = u;
                 enqueue(queue, v);
             }
-            edge = edge->next;
+            
+            current = current->next;
         }
     }
 
+
+    // Print the results
     printPath(network, parent, dest, path_index, ans_num);
 
+    reverseArray(path[ans_num], path_end[ans_num]);
+
+    // Free allocated memory
     free(visited);
     free(parent);
     free(queue->array);
     free(queue);
 }
 
-struct Node* createNode(int nodeID, int weight) {
-    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
-    newNode->nodeID = nodeID;
-    newNode->weight = weight;
-    newNode->now_weight = 0;
-    newNode->capacity_remained = 0;
-    newNode->edges = NULL;
-    return newNode;
-}
 
-struct Network* createNetwork(int numNodes) {
-    struct Network* network = (struct Network*)malloc(sizeof(struct Network));
-    network->numNodes = numNodes;
-    network->nodes = (struct Node**)malloc(numNodes * sizeof(struct Node*));
-    for (int i = 0; i < numNodes; ++i) {
-        network->nodes[i] = createNode(i, 0);
-    }
-    return network;
-}
 
-void addEdge(struct Network* network, int srcNodeID, int destNodeID, int weight) {
-    struct Edge* newEdge = (struct Edge*)malloc(sizeof(struct Edge));
-    newEdge->destNodeID = destNodeID;
-    newEdge->weight = weight;
-    newEdge->next = network->nodes[srcNodeID]->edges;
-    network->nodes[srcNodeID]->edges = newEdge;
-
-    struct Edge* reverseEdge = (struct Edge*)malloc(sizeof(struct Edge));
-    reverseEdge->destNodeID = srcNodeID;
-    reverseEdge->weight = weight;
-    reverseEdge->next = network->nodes[destNodeID]->edges;
-    network->nodes[destNodeID]->edges = reverseEdge;
-}
-
-void freeNetwork(struct Network* network) {
-    for (int i = 0; i < network->numNodes; ++i) {
-        struct Edge* current = network->nodes[i]->edges;
-        while (current != NULL) {
-            struct Edge* next = current->next;
-            free(current);
-            current = next;
-        }
-        free(network->nodes[i]);
-    }
-    free(network->nodes);
-    free(network);
-}
 
 // Function to add a connection between two nodes with a given weight
 void addConnection(struct Network* network, int node1, int node2, int weight) {
-    network->connections[node1][node2] = weight;
-    network->connections[node2][node1] = weight;
+
+    addEdge(network->nodes[node1], node2, weight);
+    addEdge(network->nodes[node2], node1, weight);
 }
 
 
@@ -480,6 +460,8 @@ int main() {
         int id, weight;
         scanf("%d %d",&id,&weight);
         network->nodes[i] = createNode(id, weight);
+
+    
     }
 
     //create matrix store weight and limit
@@ -503,24 +485,21 @@ int main() {
             limit[i][k] = network->nodes[k]->weight;
         }
     }
+
     
+
     for (int i = 0; i < links; i++)
     {
         int uselessID, ID1, ID2;
         scanf("%d %d %d",&uselessID,&ID1,&ID2);
         
         //convert nodeID to node list num in network
-        int node_link1=-1, node_link2=-1;
-        for (int k = 0; k < V; k++){
-            if(network->nodes[k]->nodeID==ID1){
-                node_link1 = k;
-            }
-            if(network->nodes[k]->nodeID==ID2){
-                node_link2 = k;
-            }
-        }
+        int node_link1 = findNodeIndex(network, ID1);
+        int node_link2 = findNodeIndex(network, ID2);
         addConnection(network, node_link1, node_link2, 1);
     }
+
+    
 
     int startNodeID[req], endNodeID[req];
     int reqid[req];
@@ -530,27 +509,17 @@ int main() {
         scanf("%d", &reqid[i]);
         scanf("%d", &startNodeID[i]);
         scanf("%d", &endNodeID[i]);
-
     }
 
     struct AnsNode *head=NULL;
-    int ansnum = 0;
+    int ansnum = 0;     
 
     for (int i = 0; i < req;i++){
 
         //convert nodeID to node list num in network
         //and calc remain capacity
-        int startNode=-1;
-        int endNode=-1;
-        for (int k = 0; k < V; k++){
-            if(network->nodes[k]->nodeID==startNodeID[i]){
-                startNode = k;
-            }
-            if(network->nodes[k]->nodeID==endNodeID[i]){
-                endNode = k;
-            }
-            network->nodes[k]->capacity_remained = (network->nodes[k]->weight)*time - network->nodes[k]->now_weight;
-        }
+        int startNode=findNodeIndex(network, startNodeID[i]);
+        int endNode=findNodeIndex(network, endNodeID[i]);
         
         // Run Dijkstra's algorithm
         if(dijkstra(network, startNode, endNode, time, load, limit, i, reqid[i], &head)){
