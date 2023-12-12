@@ -142,7 +142,7 @@ void reverseArray(int arr[], int size) {
 // Function to perform BFS and find the minimum total path node weight
 int bfs(struct Network* network, int src, int dest, int ans_num) {
     int* visited = (int*)malloc(network->numNodes * sizeof(int));
-    int* parent = (int*)malloc(network->numNodes * sizeof(int));
+    int* parent = (int* )malloc(network->numNodes * sizeof(int));
     int path_index = 0;
 
     for (int i = 0; i < network->numNodes; i++) {
@@ -192,7 +192,6 @@ int bfs(struct Network* network, int src, int dest, int ans_num) {
 
 // Function to add a connection between two nodes with a given weight
 void addConnection(struct Network* network, int node1, int node2, int weight) {
-
     addEdge(network->nodes[node1], node2, weight);
     addEdge(network->nodes[node2], node1, weight);
 }
@@ -432,8 +431,6 @@ int main() {
         int id, weight;
         scanf("%d %d",&id,&weight);
         network->nodes[i] = createNode(id, weight);
-
-    
     }
 
     //create matrix store weight and limit
@@ -468,7 +465,9 @@ int main() {
         //convert nodeID to node list num in network
         int node_link1 = findNodeIndex(network, ID1);
         int node_link2 = findNodeIndex(network, ID2);
-        addConnection(network, node_link1, node_link2, 1);
+        if(node_link1!=-1&&node_link2!=-1){
+            addConnection(network, node_link1, node_link2, 1);
+        }
     }
 
     
@@ -492,10 +491,11 @@ int main() {
         //and calc remain capacity
         int startNode=findNodeIndex(network, startNodeID[i]);
         int endNode=findNodeIndex(network, endNodeID[i]);
-        
-        // Run Dijkstra's algorithm
-        if(dijkstra(network, startNode, endNode, time, load, limit, i, reqid[i], &head)){
-            ansnum++;
+        if(startNode!=-1&&endNode!=-1){
+            // Run Dijkstra's algorithm
+            if(dijkstra(network, startNode, endNode, time, load, limit, i, reqid[i], &head)){
+                ansnum++;
+            }
         }
 
     }
