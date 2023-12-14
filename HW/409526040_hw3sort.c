@@ -139,149 +139,6 @@ void reverseArray(int arr[], int size) {
     }
 }
 
-
-
-
-// Structure to represent a priority queue node for Dijkstra's algorithm
-struct PQNode {
-    int nodeID;
-    int distance;
-};
-
-// Structure to represent a binary heap
-struct BinaryHeap {
-    int capacity;
-    int size;
-    struct PQNode** array;
-};
-
-// Function to initialize a binary heap
-struct BinaryHeap* createBinaryHeap(int capacity) {
-    struct BinaryHeap* heap = (struct BinaryHeap*)malloc(sizeof(struct BinaryHeap));
-    heap->capacity = capacity;
-    heap->size = 0;
-    heap->array = (struct PQNode**)malloc(capacity * sizeof(struct PQNode*));
-    return heap;
-}
-
-// Function to swap two nodes in the binary heap
-void swapNodes(struct PQNode** a, struct PQNode** b) {
-    struct PQNode* temp = *a;
-    *a = *b;
-    *b = temp;
-}
-
-// Function to perform heapify operation in a binary heap
-void minHeapify(struct BinaryHeap* heap, int index) {
-    int smallest = index;
-    int left = 2 * index + 1;
-    int right = 2 * index + 2;
-
-    if (left < heap->size && heap->array[left]->distance < heap->array[smallest]->distance)
-        smallest = left;
-    if (right < heap->size && heap->array[right]->distance < heap->array[smallest]->distance)
-        smallest = right;
-
-    if (smallest != index) {
-        swapNodes(&heap->array[index], &heap->array[smallest]);
-        minHeapify(heap, smallest);
-    }
-}
-
-// Function to check if the binary heap is empty
-int isEmptyHeap(struct BinaryHeap* heap) {
-    return heap->size == 0;
-}
-
-// Function to extract the minimum node from the binary heap
-struct PQNode* extractMin(struct BinaryHeap* heap) {
-    if (isEmptyHeap(heap))
-        return NULL;
-
-    struct PQNode* root = heap->array[0];
-    heap->array[0] = heap->array[heap->size - 1];
-    heap->size--;
-
-    minHeapify(heap, 0);
-
-    return root;
-}
-
-// Function to decrease the key of a node in the binary heap
-void decreaseKey(struct BinaryHeap* heap, int nodeID, int newDistance) {
-    int i;
-    for (i = 0; i < heap->size; i++) {
-        if (heap->array[i]->nodeID == nodeID) {
-            heap->array[i]->distance = newDistance;
-            break;
-        }
-    }
-
-    // Fix the min heap property if the new distance is smaller than the current distance
-    while (i > 0 && heap->array[(i - 1) / 2]->distance > heap->array[i]->distance) {
-        swapNodes(&heap->array[i], &heap->array[(i - 1) / 2]);
-        i = (i - 1) / 2;
-    }
-}
-
-struct PQNode* createPQNode(int nodeID, int distance) {
-    struct PQNode* newNode = (struct PQNode*)malloc(sizeof(struct PQNode));
-    newNode->nodeID = nodeID;
-    newNode->distance = distance;
-    return newNode;
-}
-
-
-// Function to perform Dijkstra's algorithm using a binary heap
-int dijkstra(struct Network* network, int src, int dest, int ans_num) {
-    int* distance = (int*)malloc(network->numNodes * sizeof(int));
-    int* parent = (int*)malloc(network->numNodes * sizeof(int));
-
-    for (int i = 0; i < network->numNodes; ++i) {
-        distance[i] = INT_MAX;
-        parent[i] = -1;
-    }
-
-    distance[src] = 0;
-
-    // Create a binary heap and initialize it with nodes and distances
-    struct BinaryHeap* heap = createBinaryHeap(network->numNodes);
-    for (int i = 0; i < network->numNodes; ++i) {
-        heap->array[i] = createPQNode(i, distance[i]);
-        heap->size++;
-    }
-
-    while (!isEmptyHeap(heap)) {
-        // Extract the minimum distance node from the heap
-        struct PQNode* minNode = extractMin(heap);
-        int u = minNode->nodeID;
-
-        // Relaxation of edges
-        struct Edge* current = network->nodes[u]->neighbors;
-        while (current != NULL) {
-            int v = current->dest;
-            int weight = current->weight;
-            if (distance[u] != INT_MAX && distance[u] + weight < distance[v]) {
-                distance[v] = distance[u] + weight;
-                parent[v] = u;
-
-                // Update the distance in the heap
-                decreaseKey(heap, v, distance[v]);
-            }
-            current = current->next;
-        }
-    }
-
-    // Free allocated memory
-    free(distance);
-    free(parent);
-    free(heap->array);
-    free(heap);
-
-    return 1;
-}
-
-
 // Function to perform BFS and find the minimum total path node weight
 int bfs(struct Network* network, int src, int dest, int ans_num) {
     int* visited = (int*)malloc(network->numNodes * sizeof(int));
@@ -512,10 +369,6 @@ int findans(struct Network* network, int src, int dest, int time,int **load,int 
 
 
 
-    if(bfs(network, src, dest, req_time)==0){
-        return 0;
-    }
-
     int heightmax=0;
     //build tree(by path order 1,2,3,4,5,6)
     struct TreeNode *root = buildTree(1, path_end[req_time], 0, &heightmax);
@@ -586,6 +439,49 @@ int findans(struct Network* network, int src, int dest, int time,int **load,int 
 }
 
 
+
+void sortpath(int req){
+    int temp[req];
+    for (int i = 0; i < 19;i++){
+        temp[i] = path_end[i];
+    }
+
+
+    
+
+    // Assuming path has been declared like this: int path[10000][10000];
+    int new[10000][10000];
+    int new_end[10000][10000];
+
+    // Copy values based on temp
+    for (int i = 0; i < req; i++) {
+        for (int k = 0; k < req; k++) {
+
+                
+            printf("%d %d %d\n",k , temp[i], path_end[k]);
+                
+
+            /*
+            if (temp[i] == path_end[k]) {
+
+                
+                for (int j = 0; j < path_end[k]; j++)
+                {
+                    new[i][j] = path[k][j];
+                }
+                path_end[k] = -2;
+            }
+            */
+        }
+        break;
+    }
+    // Copy values back to the original arrays
+
+\
+
+}
+
+
 int main() {
     // Create a network with 4 nodes
     int nodes = INT_MIN, links = INT_MIN, time = INT_MIN, req = INT_MIN;
@@ -649,7 +545,14 @@ int main() {
         scanf("%d", &endNodeID[i]);
     }
 
-    struct AnsNode *head=NULL;
+    for (int i = 0; i < req;i++){
+        bfs(network, startNodeID[i], endNodeID[i], i);
+    }
+
+
+    sortpath(req);
+
+    struct AnsNode *head = NULL;
     int ansnum = 0; 
 
  
@@ -668,14 +571,7 @@ int main() {
         }
 
     }
-
-    for (int i = 0; i < time;i++){
-        for (int k = 0; k < V;k++){
-            printf("%d ", load[i][k]);
-        }
-        printf("\n");
-    }
-
+    
     printf("%d\n", ansnum);
 
 
