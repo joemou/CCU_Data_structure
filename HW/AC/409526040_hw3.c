@@ -3,10 +3,12 @@
 #include <limits.h>
 
 int V;
-int path[10000][10000];
-int path_end[10000];
+int path[10000][10000]; //matrix to store the every path
+int path_end[10000];//array to store the end
 int flag;
 
+
+//adjacacny list
 struct Edge {
     int dest;
     int weight;
@@ -20,6 +22,7 @@ struct Node {
     struct Edge* neighbors;
 };
 
+//network node
 struct Network {
     int numNodes;
     struct Node** nodes;
@@ -55,6 +58,7 @@ struct Network* createNetwork(int numNodes) {
     return network;
 }
 
+//use id to find index
 int findNodeIndex(struct Network* network, int nodeID) {
     for (int i = 0; i < network->numNodes; ++i) {
         if (network->nodes[i]->nodeID == nodeID) {
@@ -96,11 +100,6 @@ void addEdge(struct Node* src, int dest, int weight) {
 }
 
 
-
-
-
-
-
 // Function to dequeue an element from the queue
 int dequeue(struct Queue* queue) {
     int item = queue->array[queue->front];
@@ -109,7 +108,7 @@ int dequeue(struct Queue* queue) {
         queue->front = queue->rear = -1;
     return item;
 }
-// Function to print the path using BFS
+// Function to print the path using BFS rcursive getting path
 void printPath(struct Network* network, int parent[], int j, int index, int ans_num) {
     if (parent[j] == -1) {
         index += 1;
@@ -123,6 +122,7 @@ void printPath(struct Network* network, int parent[], int j, int index, int ans_
 
 }
 
+//using reverse path array
 void reverseArray(int arr[], int size) {
     int start = 0;
     int end = size - 1;
@@ -141,10 +141,11 @@ void reverseArray(int arr[], int size) {
 
 // Function to perform BFS and find the minimum total path node weight
 int bfs(struct Network* network, int src, int dest, int ans_num) {
-    int* visited = (int*)malloc(network->numNodes * sizeof(int));
-    int* parent = (int* )malloc(network->numNodes * sizeof(int));
+    int* visited = (int*)malloc(network->numNodes * sizeof(int));//record visited node
+    int* parent = (int* )malloc(network->numNodes * sizeof(int));//record parent node
     int path_index = 0;
 
+    //initialize
     for (int i = 0; i < network->numNodes; i++) {
         visited[i] = 0;
         parent[i] = -1;
@@ -152,6 +153,7 @@ int bfs(struct Network* network, int src, int dest, int ans_num) {
 
     struct Queue* queue = createQueue(network->numNodes);
 
+    //start point set visit
     visited[src] = 1;
     enqueue(queue, src);
 
@@ -257,6 +259,7 @@ void displayTree(struct TreeNode* root, int id[],int time, int roof) {
             displayTree(root->right,id,time,roof);
         }
         printf("%d %d ", id[root->front-1], id[root->rear-1]);
+        //if it is leaf ndoe
         if(root->left!=NULL&&root->right!=NULL){
             printf("%d %d %d %d ", id[root->left->front - 1], id[root->left->rear - 1], id[root->right->front - 1], id[root->right->rear - 1]);
         }
@@ -280,7 +283,7 @@ void ExamineTreeload(struct Network* network, struct TreeNode* root, int time, i
         }
 
 
-        //use path id to search the network order to check if overload
+        //use path id to search the network to calc temp matrix over limit or not
         for (int i = 0; i < V;i++){
             //for left value
             if(network->nodes[i]->nodeID==id[root->front-1]){
@@ -368,7 +371,7 @@ void printans(struct AnsNode *head){
 int findans(struct Network* network, int src, int dest, int time,int **load,int **limit, int req_time, int reqid, struct AnsNode **head){
 
 
-
+    //not found
     if(bfs(network, src, dest, req_time)==0){
         return 0;
     }
@@ -391,6 +394,8 @@ int findans(struct Network* network, int src, int dest, int time,int **load,int 
     // patid order 0,1,2,3,4,5,6 which need to minus one to suit tree node order
     int rf = 0;
     int flag = 1;
+    
+    //move the tree to find the place they suit
     for (int roof = 0; roof <= (time - heightmax - 2);roof++){
         ExamineTreeload(network, root, time, temp, limit, path[req_time], &flag, roof);
         for (int i = 0; i < time;i++){
@@ -418,7 +423,7 @@ int findans(struct Network* network, int src, int dest, int time,int **load,int 
         }
     }
     
-    //if no prob
+    //if there is ans
     if (flag)
     {   
         for (int i = 0; i < time;i++){
@@ -444,7 +449,7 @@ int findans(struct Network* network, int src, int dest, int time,int **load,int 
 
 
 int main() {
-    // Create a network with 4 nodes
+
     int nodes = INT_MIN, links = INT_MIN, time = INT_MIN, req = INT_MIN;
     scanf("%d %d %d %d", &nodes, &links, &time, &req);
     struct Network* network = createNetwork(nodes);
