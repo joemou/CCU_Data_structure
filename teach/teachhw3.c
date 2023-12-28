@@ -44,13 +44,11 @@ void bfs(struct Graph* graph, int startVertex, int endVertex, int*** paths, int*
     if (currentVertex == endVertex) {
       // Found the end node, store the path
       int v = endVertex;
-      int pathIndex = *pathSizes;
-      int pathSize = 1;
+
 
       // Traverse the parent pointers to determine the path size
       while (v != startVertex) {
         v = graph->parent[v];
-        pathSize++;
       }
 
       // Allocate memory for the path
@@ -198,8 +196,12 @@ void printQueue(struct queue* q) {
   }
 }
 
+void load(int **temp,int x[],int *path){
 
-int main() {
+}
+
+int main()
+{
   int Nodes = -1, Links = -1, TimeSlots = -1, Req = -1;
   scanf("%d %d %d %d", &Nodes, &Links, &TimeSlots, &Req);
   struct Graph* graph = createGraph(Nodes);
@@ -215,9 +217,11 @@ int main() {
   }
 
   int NodeID[Nodes];
+  int x_coordinate[Nodes];
   int QuantumMemories[Nodes];
   for (int i = 0; i < Nodes; i++) {
     scanf("%d %d", &NodeID[i], &QuantumMemories[i]);
+    x_coordinate[i] = NodeID[i];
   }
 
   for (int i = 0; i < TimeSlots; i++) {
@@ -257,6 +261,11 @@ int main() {
     bfs(graph, ReqSrc[i], ReqDst[i], &paths, &pathSizes);
   }
 
+  int** temp = (int**)malloc(TimeSlots * sizeof(int*));
+  for (int i = 0; i < TimeSlots; i++) {
+    temp[i] = (int*)malloc(Nodes * sizeof(int));
+  }
+
   // Display stored paths
   for (int i = 0; i < pathSizes; i++) {
     printf("Path %d: ", i);
@@ -264,6 +273,7 @@ int main() {
       if (paths[i][j] == -1) {
         break;  // Terminate the loop when encountering -1 in the path
       }
+      
       printf("%d ", paths[i][j]);
     }
     printf("\n");
