@@ -44,13 +44,10 @@ void bfs(struct Graph* graph, int startVertex, int endVertex, int*** paths, int*
     if (currentVertex == endVertex) {
       // Found the end node, store the path
       int v = endVertex;
-      int pathIndex = *pathSizes;
-      int pathSize = 1;
 
       // Traverse the parent pointers to determine the path size
       while (v != startVertex) {
         v = graph->parent[v];
-        pathSize++;
       }
 
       // Allocate memory for the path
@@ -236,12 +233,32 @@ int main() {
 
   for (int i = 0; i < Links; i++) {
     scanf("%d %d %d", &ID, &LinkEnd1, &LinkEnd2);
-    addEdge(graph, LinkEnd1, LinkEnd2);
+    int index_1=-1,index_2=-1;
+    for (int k = 0; k < Nodes;k++){
+      if(LinkEnd1==NodeID[k]){
+        index_1 = k;
+      }
+      if(LinkEnd2==NodeID[k]){
+        index_2 = k;
+      }
+    }
+    addEdge(graph, index_1, index_2);
   }
 
-  int ReqId[Req], ReqSrc[Req], ReqDst[Req];
+  int ReqId[Req], ReqSrc_index[Req], ReqDst_index[Req];
   for (int i = 0; i < Req; i++) {
-    scanf("%d %d %d", &ReqId[i], &ReqSrc[i], &ReqDst[i]);
+    int start, end;
+    scanf("%d %d %d", &ReqId[i], &start, &end);
+
+
+    for (int k = 0; k < Nodes;k++){
+      if(start==NodeID[k]){
+        ReqSrc_index[i] = k;
+      }
+      if(end==NodeID[k]){
+        ReqDst_index[i] = k;
+      }
+    }
   }
 
   // Allocate memory for storing paths and their sizes
@@ -254,7 +271,7 @@ int main() {
       graph->visited[v] = 0;
       graph->parent[v] = -1;
     }
-    bfs(graph, ReqSrc[i], ReqDst[i], &paths, &pathSizes);
+    bfs(graph, ReqSrc_index[i], ReqDst_index[i], &paths, &pathSizes);
   }
 
   // Display stored paths
@@ -264,7 +281,7 @@ int main() {
       if (paths[i][j] == -1) {
         break;  // Terminate the loop when encountering -1 in the path
       }
-      printf("%d ", paths[i][j]);
+      printf("%d ", NodeID[paths[i][j]]);
     }
     printf("\n");
     // Free memory for each individual path
