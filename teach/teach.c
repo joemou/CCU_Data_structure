@@ -271,30 +271,33 @@ int main() {
   int** paths = NULL;
   int pathSizes = 0;
   // Perform BFS for each query and store paths
-  for (int i = 0; i < Req; i++) {
+  for (int p = 0; p < Req; p++) {
     // Reset visited and parent arrays for each query
     for (int v = 0; v < Nodes; v++) {
       graph->visited[v] = 0;
       graph->parent[v] = -1;
     }
-    bfs(graph, ReqSrc_index[i], ReqDst_index[i], &paths, &pathSizes);
+    bfs(graph, ReqSrc_index[p], ReqDst_index[p], &paths, &pathSizes);
   }
 
   // Display stored paths
   int size[Nodes];//path size
-  for (int i = 0; i < pathSizes; i++) {
-    size[i] = 0;
+  for (int p = 0; p < pathSizes; p++) {
+    size[p] = 0;
   
     for (int j = 0; j < Nodes; j++)
     {
-        if (paths[i][j] == -1)
+        if (paths[p][j] == -1)
         {
             break; // Terminate the loop when encountering -1 in the path
         }
-        size[i]++;
+        size[p]++;
     }
   }
 
+  int ans[Nodes];
+  int ans_index = 0;
+  int ans_matrix[pathSizes][TimeSlots][Nodes];
   for (int i = 0; i < pathSizes; i++) {
     int height=0;
 
@@ -310,19 +313,34 @@ int main() {
     }
 
     int *nowpath = paths[i];
-    int temp[TimeSlots][size[i]];
+    int** temp = (int**)malloc(TimeSlots * sizeof(int*));
+    for (int j = 0; j < TimeSlots; j++) {
+      temp[j] = (int*)malloc(size[j] * sizeof(int));
+    }
 
     int carry_index[size[i]];
 
     //find true index on carry
     for (int k = 0; k < size[i];k++){
-        for (int l = 0; l < Nodes;l++){
-            if(NodeID[l]==nowpath[k]){
-                carry_index[k] = l;
-                break;
-            }
+      int flag = 1;
+      for (int l = 0; l < Nodes;l++){
+        if(NodeID[l]==nowpath[k]){
+          carry_index[k] = l;
+          flag = 0;
+          break;
         }
+      }
+      if(flag==1){
+        printf("Not found");
+      }
     }
+
+    /*
+    for (int k = 0; k < size[i];k++){
+      printf("%d ", carry_index[k]);
+    }
+    printf("\n");
+    */
 
     for (int p = 0; p < TimeSlots; p++)
     {
@@ -332,6 +350,7 @@ int main() {
         }
     }
 
+    //create the tree in matrix 
     for (int j = 0; j < height; j++)
     {   temp[TimeSlots-j-1][0] = 1; 
         if(j<2){
@@ -350,26 +369,160 @@ int main() {
     }
 
     //intial temp carry
-    for (int i = 0; i < TimeSlots; i++) {
+    for (int y = 0; y < TimeSlots; y++) {
         for (int k = 0; k < Nodes; k++) {
-            temp_carry[i][k]=carry[i][k];
+            temp_carry[y][k]=carry[y][k];
         }
     }
     
-    
-    //put new req to tempcarry exmaine if overload 
-
+  
+    //put the tree to tempcarry to put into the real index matrix
     for (int p = 0; p < TimeSlots; p++)
     {
         for (int k = 0; k < size[i]; k++)
-        {
+        { 
+          if(temp[p][k]!=0){
+            
+            //printf("org%d x:%d y:%d plus value:%d",temp_carry[p][carry_index[k]],carry_index[k],p,temp[p][k]);
             temp_carry[p][carry_index[k]] += temp[p][k];
+            //printf("after%d \n",temp_carry[p][carry_index[k]]);
+            
+          }
         }
     }
+    
+    /*
+    printf("*\n");
+    for (int p = 0; p < TimeSlots;p++){
+        for (int k = 0; k < Nodes;k++){
+            printf("%d ", temp_carry[p][k]);
+        }
+        printf("\n");
+    }
+    */
+    
+    
 
+
+    //examine overload
     int flag = 0;
 
+    for (int p = 0; p < TimeSlots;p++){
+      for (int k = 0; k < Nodes;k++){
+        if(temp_carry[p][k]>carry_capacity[p][k]){
+          flag = 1;
+          break;
+        }
+      }
+    }
 
+    //not over
+    if(flag==0){
+      for (int i = 0; i < TimeSlots; i++) {
+        for (int k = 0; k < Nodes; k++) {
+          carry[i][k]=temp_carry[i][k];
+        }
+      }
+
+      
+      //ans index is num of ans
+      ans[ans_index] = i;//store path index
+      for (int l = 0; l < TimeSlots; l++) {
+        for (int k = 0; k < Nodes; k++) {
+          ans_matrix[ans_index][l][k] = temp[l][k]; //bound Nodes is size[i]
+        }
+      }
+      ans_index++;
+    }
+
+    for (int i = 0; i < TimeSlots; i++) {
+      free(temp[i]);
+    }
+    free(temp);
+
+
+
+  }
+
+  printf("%d\n", ans_index);
+
+  for (int k = 0; k < ans_index;k++){
+    
+    printf("%d ", ans[k]);
+    for (int p = 0; p < size[ans[k]];p++){
+      printf("%d ", paths[ans[k]][p]);
+    }
+
+    for (int t = 0; t < ans_index; t++) {
+        struct queue* ansq = createQueue(); // Create a new queue for each iteration
+        for (int p = 1; p < TimeSlots; p++) { // Start at level
+            for (int g = 0; g < size[ans[t]]; g++) {
+                if (ans_matrix[t][p][g] == 1) {
+                    enqueue(ansq, paths[ans[t]][g]);
+                } else if (ans_matrix[t][p][g] == 2) {
+                    enqueue(ansq, paths[ans[t]][g]);
+                    enqueue(ansq, paths[ans[t]][g]);
+                }
+            }
+            while (!isEmpty(ansq)) {
+                printf("%d ", dequeue(ansq));
+                printf("%d ", dequeue(ansq));
+                printf("%d\n", p + 1);
+            }
+
+            printf("\n");
+        }
+        // Don't forget to free the memory for the current queue
+        free(ansq->items);
+        free(ansq);
+    }
+
+
+
+
+    printf("\n");
+  }
+
+  
+
+
+
+  return 0;
+}
+/*
+  for (int k = 0; k < ans_index;k++){
+    for (int p = 0; p < TimeSlots;p++){
+      for (int g = 0; g < size[ans[ans_index]];g++){
+        if(ans_matrix[k][p][g]==1){
+          printf("%d")
+        }
+      }
+      printf("\n");
+    }
+    
+  }
+*/
+
+    /*
+    printf("\n************\n");
+    for (int p = 0; p < TimeSlots;p++){
+        for (int k = 0; k < Nodes;k++){
+            printf("%d ", carry[p][k]);
+        }
+        printf("\n");
+    }
+    printf("\n************\n");
+    for (int p = 0; p < TimeSlots;p++){
+        for (int k = 0; k < Nodes;k++){
+            printf("%d ", carry_capacity[p][k]);
+        }
+        printf("\n");
+    }
+    printf("\n************\n");
+
+    */
+
+    /*
 
     for (int p = 0; p < TimeSlots;p++){
         for (int k = 0; k < size[i];k++){
@@ -377,9 +530,11 @@ int main() {
         }
         printf("\n");
     }
-  }
 
-
-  
-  return 0;
-}
+    for (int p = 0; p < TimeSlots;p++){
+        for (int k = 0; k < Nodes;k++){
+            printf("%d ", temp_carry[p][k]);
+        }
+        printf("\n");
+    }
+    */
