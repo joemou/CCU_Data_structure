@@ -11,6 +11,7 @@
         int rear;
     } IntQueue;
     //Initialize the queue
+    
     void initializeIntQueue(IntQueue* queue) {
         queue->front = -1;
         queue->rear = -1;
@@ -348,23 +349,7 @@
     }
 
 
-    int bf(struct activity activities[], int n, int *low, int *up, int *index) {
-        for(int k=0;k<n;k++){
-            if(activities[k].finish==-1||((activities[k].finish-activities[k].start)<0)){
-                activities[k].finish=99999;
-                activities[k].start=-99999;
-            }
-        }
 
-        for(int i=0;i<n;i++){
-
-        }
-    }
-    int brute(struct activity activities[],int n,int a,int b){
-        for(int i=0;i<n;i++){
-            
-        }
-    }
     //func for update step
     void updateRound(int oldPath[], int newPath[], int numNodes) {  
         
