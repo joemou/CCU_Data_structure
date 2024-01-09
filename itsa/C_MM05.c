@@ -7,7 +7,7 @@ int main() {
 
     scanf("%lf", &sideLength);
 
-    area = round((sideLength*9/5+32)*10)/10;
+    area = round((sideLength * sideLength)*10)/10;
 
 
     printf("%.1lf\n", area);
