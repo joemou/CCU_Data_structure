@@ -422,6 +422,7 @@ int findans(struct Network* network, int src, int dest, int time,int **load,int 
             }
         }
     }
+
     
     //if there is ans
     if (flag)
